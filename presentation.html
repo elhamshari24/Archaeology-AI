@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورشة الذكاء الاصطناعي في علم الآثار — هيئة الشارقة للآثار</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0f172a;
+    --sand-primary: #d4a373;
+    --sand-light: #fefae0;
+    --terracotta: #b23a22;
+    --slate-surface: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --emerald-accent: #10b981;
+    --cyan-accent: #06b6d4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', 'Tajawal', sans-serif; }
+  body { background: var(--bg-dark); color: var(--text-main); overflow: hidden; height: 100vh; width: 100vw; }
+  
+  /* Slide Engine */
+  .deck-container { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .slide { position: absolute; inset: 0; padding: 40px 60px; display: none; opacity: 0; transition: opacity 0.4s ease-in-out; flex-direction: column; justify-content: space-between; background: radial-gradient(circle at 80% 20%, #1e293b 0%, #0f172a 100%); }
+  .slide.active { display: flex; opacity: 1; }
+
+  /* Header & Branding */
+  .slide-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(212, 163, 115, 0.25); padding-bottom: 12px; }
+  .branding { display: flex; align-items: center; gap: 12px; }
+  .badge-tag { background: rgba(212, 163, 115, 0.15); border: 1px solid var(--sand-primary); color: var(--sand-primary); padding: 4px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; }
+  .agency-title { font-size: 1rem; color: var(--text-muted); }
+  .slide-number { font-weight: 800; color: var(--sand-primary); font-size: 1.1rem; }
+
+  /* Slide Body & Typography */
+  .slide-body { flex: 1; display: flex; flex-direction: column; justify-content: center; margin: 20px 0; }
+  .slide-title { font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 8px; line-height: 1.3; }
+  .slide-subtitle { font-size: 1.15rem; color: var(--sand-primary); margin-bottom: 24px; font-weight: 600; }
+
+  /* Layout Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 100%; align-items: center; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Card Designs */
+  .feature-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 22px; backdrop-filter: blur(8px); position: relative; overflow: hidden; transition: all 0.3s; }
+  .feature-card::before { content: ""; position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--sand-primary); }
+  .feature-card.alert::before { background: var(--terracotta); }
+  .feature-card.highlight::before { background: var(--emerald-accent); }
+  .card-icon { font-size: 1.8rem; margin-bottom: 10px; display: inline-block; }
+  .card-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; color: #ffffff; }
+  .card-desc { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* Visual Pipeline Flow */
+  .flow-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 15px; }
+  .flow-step { flex: 1; background: #1e293b; border: 1px solid rgba(212, 163, 115, 0.3); border-radius: 10px; padding: 18px 14px; text-align: center; }
+  .step-num { width: 30px; height: 30px; background: var(--sand-primary); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: 800; font-size: 0.9rem; }
+  .step-text { font-size: 0.95rem; font-weight: 700; color: #ffffff; }
+  .step-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; }
+  .flow-arrow { color: var(--sand-primary); font-size: 1.5rem; font-weight: bold; }
+
+  /* Metric KPI Block */
+  .kpi-row { display: flex; gap: 20px; margin-top: 15px; }
+  .kpi-box { flex: 1; background: linear-gradient(135deg, rgba(212, 163, 115, 0.1) 0%, rgba(30, 41, 59, 0.8) 100%); border: 1px solid rgba(212, 163, 115, 0.3); border-radius: 10px; padding: 18px; text-align: center; }
+  .kpi-val { font-size: 2.2rem; font-weight: 900; color: var(--sand-primary); }
+  .kpi-label { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+
+  /* Footer Controls */
+  .slide-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; }
+  .speaker-cue { font-size: 0.85rem; color: var(--sand-primary); font-weight: 600; background: rgba(212, 163, 115, 0.1); padding: 4px 12px; border-radius: 6px; }
+  .controls { display: flex; gap: 10px; }
+  .btn-nav { background: #334155; border: none; color: #fff; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.2s; }
+  .btn-nav:hover { background: var(--sand-primary); color: #000; }
+
+  /* Hero Title Slide Specific */
+  .hero-wrapper { text-align: center; max-width: 900px; margin: auto; }
+  .hero-tag { display: inline-block; border: 1px solid var(--sand-primary); color: var(--sand-primary); padding: 6px 18px; border-radius: 30px; font-weight: 700; margin-bottom: 18px; letter-spacing: 1px; }
+  .hero-main-title { font-size: 3rem; font-weight: 900; line-height: 1.25; margin-bottom: 16px; background: linear-gradient(to left, #ffffff, #d4a373); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-desc { font-size: 1.2rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 25px; }
+
+  @media print {
+    body { overflow: visible; height: auto; }
+    .slide { display: flex !important; opacity: 1 !important; position: relative !important; page-break-after: always; height: 100vh; }
+    .slide-footer, .btn-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck-container">
+
+  <!-- الشريحة 1: الافتتاحية والواجهة الرئاسية -->
+  <section class="slide active">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">حكومة الشارقة</span>
+        <span class="agency-title">هيئة الشارقة للآثار | ورشة عمل متخصصة</span>
+      </div>
+      <div class="slide-number">01 / 10</div>
+    </div>
+    <div class="slide-body">
+      <div class="hero-wrapper">
+        <div class="hero-tag">اعتماد إداري رسمي SAA-CCS/1147/2026</div>
+        <h1 class="hero-main-title">الذكاء الاصطناعي في توثيق المواقع والقطع الأثرية</h1>
+        <p class="hero-desc">استراتيجيات التوثيق ثلاثي الأبعاد، والاستشعار الراداري الفضائي، والنمذجة التنبؤية لحماية واستدامة التراث الأثري في إمارة الشارقة</p>
+        <div class="kpi-row" style="max-width: 680px; margin: auto;">
+          <div class="kpi-box"><div class="kpi-val">4</div><div class="kpi-label">محاور رئيسية معتمدة</div></div>
+          <div class="kpi-box"><div class="kpi-val">120</div><div class="kpi-label">دقيقة تدريبية وعملية</div></div>
+          <div class="kpi-box"><div class="kpi-val">100%</div><div class="kpi-label">بيانات ونماذج تطبيقية</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: الترحيب بسعادة الدكتور سعيد بن يعروف النقبي، وتأطير التحول الرقمي بالهيئة.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 2: المحور 1 - التحول من الأرشفة الساكنة إلى الذكاء التوليدي -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الأول</span>
+        <span class="agency-title">مقدمة في الذكاء الاصطناعي وتطبيقاته الأثرية</span>
+      </div>
+      <div class="slide-number">02 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">التحول الإبستمولوجي في العمل الأثري المعاصر</h2>
+      <p class="slide-subtitle">الانتقال الجذري من مخازن البيانات الرقمية المعزولة إلى نماذج الفهم والتحليل الدلالي</p>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="card-icon">🗄️</div>
+          <h3 class="card-title">الرقمنة الكلاسيكية (Web 1.0/2.0)</h3>
+          <p class="card-desc">جداول بيانات معزولة (Excel / Access)، ملفات PDF ثابتة، وصور بدون معانٍ حاسوبية. استرجاع يدوي مجهد يستغرق 80% من وقت الباحث المكتبي.</p>
+        </div>
+        <div class="feature-card highlight">
+          <div class="card-icon">🧠</div>
+          <h3 class="card-title">الذكاء الإدراكي والتوليدي</h3>
+          <p class="card-desc">تحليل الأنماط تلقائياً (Pattern Recognition)، قراءة ملامح التآكل، وربط المكتشفات بالسياق الزمني والجغرافي بناءً على شبكات عصبية عميقة.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">🌐</div>
+          <h3 class="card-title">حوكمة البيانات (FAIR Data)</h3>
+          <p class="card-desc">تطبيق المعايير القياسية العالمية (CIDOC-CRM & Dublin Core) لجعل بيانات لقى الشارقة قابلة للاكتشاف، والتشغيل البيني، وإعادة الاستخدام دولياً.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: التأكيد على أن الذكاء الاصطناعي أداة تمكين فائقة للآثاري وليس بديلاً عن حسه الميداني.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 3: المحور 1 - فك النقوش وتصنيف المسكوكات -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الأول</span>
+        <span class="agency-title">الرؤية الحاسوبية ومعالجة اللغات التاريخية</span>
+      </div>
+      <div class="slide-number">03 / 10</div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div>
+          <h2 class="slide-title">استنطاق النقوش وفحص المسكوكات الإسلامية</h2>
+          <p class="slide-subtitle">حالة دراسية تطبيقية: نماذج أكسفورد وDeepMind مع مكتشفات الشارقة</p>
+          <div class="feature-card" style="margin-bottom: 15px;">
+            <h3 class="card-title">نموذج Ithaca لترميم ونسب النصوص</h3>
+            <p class="card-desc">يحقق دقة 71% في استكمال الكلمات المتآكلة، ودقة 84% في تحديد الموقع الجغرافي للنص، وتأريخ المخطوطة في نطاق 30 عاماً.</p>
+          </div>
+          <div class="feature-card highlight">
+            <h3 class="card-title">مسكوكات الشارقة (المدام ومليحة)</h3>
+            <p class="card-desc">تصنيف الدراهم العباسية والأموية آلياً بمطابقة قوالب السك الدقيقة وقراءة هوامش ومأثورات الخط الكوفي غير المنقوط.</p>
+          </div>
+        </div>
+        <div>
+          <div class="feature-card" style="background: rgba(15, 23, 42, 0.9); border-color: var(--sand-primary);">
+            <h3 class="card-title" style="color: var(--sand-primary);">منهجية الفهرسة بالـ Multimodal AI</h3>
+            <div class="kpi-row" style="margin-bottom: 15px;">
+              <div class="kpi-box"><div class="kpi-val">85%</div><div class="kpi-label">تخفيض زمن التوثيق</div></div>
+              <div class="kpi-box"><div class="kpi-val">0.1mm</div><div class="kpi-label">دقة مطابقة القوالب</div></div>
+            </div>
+            <p class="card-desc" style="font-size: 0.9rem;">الخوارزمية تقوم بمسح سطح المسكوكة، عزل آثار الصدمات والأكسدة، استخراج الوزن ونسبة القطر، وتوليد بطاقة تسجيل متحفية كاملة جاهزة للاعتماد.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: استعراض نموذج مسكوكة درهم فضي وكيف يستخرج الذكاء الاصطناعي مكان وتاريخ السك خلال ثوانٍ.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 4: المحور 2 - التوأم الرقمي الميداني -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الثاني</span>
+        <span class="agency-title">توثيق المواقع والتسجيل الميداني 3D</span>
+      </div>
+      <div class="slide-number">04 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">التوثيق الميداني المتقدم: من SfM إلى 3D Gaussian Splatting</h2>
+      <p class="slide-subtitle">أحدث تقنيات بناء التوائم الرقمية (Digital Twins) لمربعات الحفر والمنشآت التاريخية</p>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="card-icon">📷</div>
+          <h3 class="card-title">Photogrammetry (SfM)</h3>
+          <p class="card-desc">المسح التصويري الكلاسيكي؛ يعطي دقة هندسية عالية لكنه يتطلب ساعات معالجة شاقة ويعاني أمام الأسطح الرملية ذات الملامح المتشابهة.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">⚡</div>
+          <h3 class="card-title">حقول الإشعاع (NeRF)</h3>
+          <p class="card-desc">تدريب شبكة عصبية لتمثيل المشهد الحجمي بالكامل، مما يحل إشكاليات الإضاءة الصحراوية الصعبة وانعكاسات الشمس على الحجارة الأثرية.</p>
+        </div>
+        <div class="feature-card highlight">
+          <div class="card-icon">🚀</div>
+          <h3 class="card-title">3D Gaussian Splatting (3DGS)</h3>
+          <p class="card-desc">طفرة 2026: معالجة فورية للمشهد ثلاثي الأبعاد وتصفحه بمعدل 60 إطاراً في الثانية دون الحاجة لحواسيب معالجة فائقة القوة في الميدان.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: الحفرية الأثرية تدميرية بطبيعتها؛ التوأم الرقمي ثلاثي الأبعاد هو الوثيقة الخالدة للطبقات المزالة.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 5: المحور 2 - دورة العمل الميدانية -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الثاني</span>
+        <span class="agency-title">خط سير العمل الميداني الذكي (Field Pipeline)</span>
+      </div>
+      <div class="slide-number">05 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">أتمتة التسجيل الحقلي واستخراج مقاطع الفخار</h2>
+      <p class="slide-subtitle">كيف تترابط أدوات الهاتف والحواسيب مع قواعد بيانات نظم المعلومات الجغرافية بالهيئة</p>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-text">المسح بالهاتف/الدرون</div>
+          <div class="step-sub">Polycam & LiDAR بتداخل صور 70%</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-text">السجلات الصوتية</div>
+          <div class="step-sub">تحويل صوت المنقب إلى استمارة سياق طبقي</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-text">مقاطع الفخار الآلية</div>
+          <div class="step-sub">Rim Profile Extraction بالرؤية الحاسوبية</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="step-num">4</div>
+          <div class="step-text">المزامنة المركزية</div>
+          <div class="step-sub">ربط السحابة النقطية بـ QGIS / SAA Server</div>
+        </div>
+      </div>
+      <div class="feature-card highlight" style="margin-top: 25px;">
+        <h3 class="card-title">القيمة الميدانية المباشرة</h3>
+        <p class="card-desc">توفير 75% من الوقت المستهلك في رسم مقاطع الفخار يدوياً، مع دقة قياس مليمترية فورية لحساب أقطار الأواني المكتشفة وتوثيق الطبقات الجيولوجية لحظياً.</p>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: شرح كيفية ربط استمارات السياق الطبقي الرقمية مباشرة بقاعدة بيانات الهيئة المركزية.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 6: المحور 3 - الكشف الفضائي ورادار SAR -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الثالث</span>
+        <span class="agency-title">الاستشعار عن بعد وكشف الآثار المدفونة</span>
+      </div>
+      <div class="slide-number">06 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">استكشاف ما تحت الرمال: فيزياء الرادار الفضائي (SAR)</h2>
+      <p class="slide-subtitle">اختراق الكثبان الصحراوية الجافة في سهول إمارة الشارقة عبر الأقمار الصناعية</p>
+      <div class="grid-2">
+        <div class="feature-card">
+          <h3 class="card-title">رادار الفتحة الاصطناعية (SAR)</h3>
+          <p class="card-desc">تعتمد أقمار Sentinel-1 وALOS على إرسال موجات ميكروية (Microwave L-Band & C-Band) قادرة على اختراق الرمال الجافة لعمق يتراوح بين 1 إلى 3 أمتار، حيث ترتد الموجات بقوة عند اصطدامها بالأساسات الحجرية والجدران اللبنة المدفونة.</p>
+        </div>
+        <div class="feature-card highlight">
+          <h3 class="card-title">الليدار المحمول جواً (Airborne LiDAR)</h3>
+          <p class="card-desc">خوارزميات فصل النقاط الأرضية تعزل الغطاء الشجري والرمال الزاحفة رقمياً، لإنتاج نماذج الارتفاع الرقمية (DTM / DEM) الدقيقة، مما يكشف مدافن التلال الركامية وقنوات الأفلاج الجافة (Paleochannels).</p>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-val">1 - 3m</div><div class="kpi-label">عمق اختراق رادار SAR للرمال الجافة</div></div>
+        <div class="kpi-box"><div class="kpi-val">1000s</div><div class="kpi-label">كيلومترات مربعة تُمسح آلياً في دقائق</div></div>
+        <div class="kpi-box"><div class="kpi-val">Zero</div><div class="kpi-label">تدخل تدميري أو حفريات عشوائية مسبقة</div></div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: التركيز على ميزة البيئة الجافة في دولة الإمارات التي تسمح للموجات باختراق الرمال بكفاءة عالية.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 7: المحور 3 - الكود التفاعلي والنمذجة التنبؤية -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الثالث</span>
+        <span class="agency-title">الذكاء الجغرافي المكاني (GeoAI & Vision)</span>
+      </div>
+      <div class="slide-number">07 / 10</div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div>
+          <h2 class="slide-title">النمذجة التنبؤية بالذكاء الاصطناعي (GeoAI)</h2>
+          <p class="slide-subtitle">تدريب نماذج كشف الكائنات على تمييز الشواهد الأثرية غير المرئية</p>
+          <div class="feature-card" style="margin-bottom: 15px;">
+            <h3 class="card-title">مؤشر الفروق الطيفية الأثري (ANDI)</h3>
+            <p class="card-desc">معادلة حسابية تدمج النطاق الأحمر بنطاق الأشعة تحت الحمراء القريبة (NIR) لإظهار التباين بين رطوبة التربة وكثافة الأساسات الحجرية.</p>
+          </div>
+          <div class="feature-card highlight">
+            <h3 class="card-title">تطبيق كود Google Colab التفاعلي</h3>
+            <p class="card-desc">تحريك مؤشرات الحساسية (Sensitivity) وحجم المعالم لتصفية ضوضاء الصحراء ورسم مربعات الاكتشاف الخضراء حول المواقع المحتملة فورياً.</p>
+          </div>
+        </div>
+        <div>
+          <div class="feature-card" style="background: rgba(15, 23, 42, 0.95); border: 1px solid var(--emerald-accent);">
+            <h3 class="card-title" style="color: var(--emerald-accent);">مخرجات الكشف الآلي لمواقع الشارقة</h3>
+            <p class="card-desc" style="margin-bottom: 12px;">تحديد مواقع محتملة: أسوار حصون العصر الحديدي، قنوات أفلاج المدام، ومدافن العصر البرونزي.</p>
+            <div style="background: #020617; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; color: #a7f3d0; line-height: 1.5; direction: ltr; text-align: left;">
+              > RUNNING: Archaeological_Anomaly_Detector.py<br>
+              > BANDS: Red (B4), NIR (B8) | SENSITIVITY: 0.18<br>
+              [+] DETECTED: Rectangular Wall Enclosure (Conf: 94%)<br>
+              [+] DETECTED: Paleochannel / Ancient Falaj (Conf: 88%)<br>
+              [+] DETECTED: 3 Circular Burial Cairns (Conf: 91%)<br>
+              > STATUS: GeoJSON Coordinates Exported to QGIS.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: استعراض مخرجات الكود وكيف ينقل الباحث من المسح العشوائي إلى المسح الموجه بإحداثيات دقيقة.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 8: المحور 4 - المراقبة رباعية الأبعاد وتغير الزمن -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الرابع</span>
+        <span class="agency-title">مراقبة حالة المواقع والقطع ورصد التدهور</span>
+      </div>
+      <div class="slide-number">08 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">المراقبة رباعية الأبعاد (4D Time-Lapse Monitoring)</h2>
+      <p class="slide-subtitle">الانتقال من الترميم العلاجي بعد وقوع الكارثة إلى الصيانة الوقائية والتنبؤية المسبقة</p>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="card-icon">⏱️</div>
+          <h3 class="card-title">مقارنة السحب النقطية (M3C2)</h3>
+          <p class="card-desc">مقارنة مسحين ثلاثيي الأبعاد أُجريا بفارق سنة عبر خوارزمية M3C2 في برنامج CloudCompare لرصد التآكل السطحي بدقة المليمتر.</p>
+        </div>
+        <div class="feature-card alert">
+          <div class="card-icon">🧱</div>
+          <h3 class="card-title">رصد الشروخ الإنشائية (AI Vision)</h3>
+          <p class="card-desc">استخدام نماذج التجزئة الدلالية (Semantic Segmentation) للكشف الآلي عن الشقوق وتحديد معدلات اتساعها ودرجة خطورتها على الأسوار.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">🔬</div>
+          <h3 class="card-title">حماية القطع بالمستودعات</h3>
+          <p class="card-desc">رصد مظاهر الصدأ ومرض البرونز والتقشر على المعادن والخزف أوتوماتيكياً عبر تحليل الصور الدورية للقطع المعروضة والمخزونة.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: توضيح كيف يوفر الرصد رباعي الأبعاد ميزانيات الترميم عبر التدخل المبكر قبل الانهيار.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 9: المحور 4 - تقارير الحالة المؤتمتة -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">المحور الرابع</span>
+        <span class="agency-title">إدارة المخاطر والتقارير المؤتمتة</span>
+      </div>
+      <div class="slide-number">09 / 10</div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2">
+        <div>
+          <h2 class="slide-title">أتمتة تقارير الحالة الإنشائية (Condition Reports)</h2>
+          <p class="slide-subtitle">تكامل الذكاء الاصطناعي مع معايير مشروع إيمينا (EAMENA) الدولي</p>
+          <div class="feature-card highlight" style="margin-bottom: 15px;">
+            <h3 class="card-title">مصفوفة تقييم التهديدات الحقلية</h3>
+            <p class="card-desc">تصنيف آلي للمخاطر: زحف الرمال، والتعرية الريحية، ومجاري مياه الأمطار، والتعديات الحضرية المحيطة بالمواقع الأثرية.</p>
+          </div>
+          <div class="feature-card">
+            <h3 class="card-title">نظام الإنذار الإنشائي المبكر</h3>
+            <p class="card-desc">إرسال تنبيهات تلقائية لفرق الترميم والصيانة بالهيئة عند تجاوز معدل اتساع الشروخ عتبة الأمان المحددة مسبقاً.</p>
+          </div>
+        </div>
+        <div>
+          <div class="feature-card" style="background: rgba(30, 41, 59, 0.9);">
+            <h3 class="card-title" style="color: var(--sand-primary);">مستويات الاستجابة الذكية</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+              <div style="background: rgba(16, 185, 129, 0.15); border-right: 4px solid var(--emerald-accent); padding: 10px; border-radius: 4px;">
+                <strong style="color: var(--emerald-accent);">المستوى الأخضر (مستقر):</strong> تغيرات سطحية أقل من 0.5 ملم / مسح دوري سنوي.
+              </div>
+              <div style="background: rgba(212, 163, 115, 0.15); border-right: 4px solid var(--sand-primary); padding: 10px; border-radius: 4px;">
+                <strong style="color: var(--sand-primary);">المستوى البرتقالي (مراقبة):</strong> تشققات نشطة واتساع طفيف / مسح فصلي كل 3 أشهر.
+              </div>
+              <div style="background: rgba(178, 58, 34, 0.15); border-right: 4px solid var(--terracotta); padding: 10px; border-radius: 4px;">
+                <strong style="color: var(--terracotta);">المستوى الأحمر (حرج):</strong> هبوط هيكلي أو تصدعات متسارعة / تدخل هندسي عاجل وفوري.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: استعراض نموذج تقرير فني رقمي يُنشأ أوتوماتيكياً ويرفع لإدارة الهيئة لاتخاذ القرار.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الشريحة 10: التوصيات المؤسسية والختام -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="branding">
+        <span class="badge-tag">مخرجات الورشة</span>
+        <span class="agency-title">التوصيات المؤسسية المقترحة لهيئة الشارقة للآثار</span>
+      </div>
+      <div class="slide-number">10 / 10</div>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">خارطة طريق التحول الرقمي للتوثيق الأثري</h2>
+      <p class="slide-subtitle">توصيات عملية منبثقة عن ورشة عمل الذكاء الاصطناعي لرفعها إلى سعادة مدير الهيئة</p>
+      <div class="grid-4">
+        <div class="feature-card highlight">
+          <div class="card-icon">🏛️</div>
+          <h3 class="card-title" style="font-size: 1.1rem;">مستودع التوائم الرقمية</h3>
+          <p class="card-desc" style="font-size: 0.85rem;">تأسيس مكتبة ثلاثية الأبعاد سحابية مركزية لجميع لقى ومواقع الشارقة وفق المعايير الدولية.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">🛰️</div>
+          <h3 class="card-title" style="font-size: 1.1rem;">بروتوكول المسح الفضائي</h3>
+          <p class="card-desc" style="font-size: 0.85rem;">اعتماد تحليل صور رادار SAR والليدار كخطوة استباقية إلزامية قبل بدء أي مسح ميداني استكشافي.</p>
+        </div>
+        <div class="feature-card alert">
+          <div class="card-icon">🛡️</div>
+          <h3 class="card-title" style="font-size: 1.1rem;">وحدة الرصد الإنشائي</h3>
+          <p class="card-desc" style="font-size: 0.85rem;">إطلاق نظام المراقبة الدورية رباعية الأبعاد (4D) لحصون ومباني الساحل الشرقي ومواقع الصحراء.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">🎓</div>
+          <h3 class="card-title" style="font-size: 1.1rem;">بناء القدرات الوطنية</h3>
+          <p class="card-desc" style="font-size: 0.85rem;">تدريب كوادر الهيئة الميدانية على أدوات النمذجة بالهاتف (Polycam) وتطبيقات نظم QField الجغرافية.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="speaker-cue">💡 ملاحظة إلقاء: شكر الحضور والإدارة، وفتح باب الأسئلة والمناقشة الأكاديمية مع الخبراء.</div>
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮</button>
+        <button class="btn-nav" onclick="nextSlide()">❯</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+
+  function showSlide(index) {
+    slides.forEach((s, i) => {
+      s.classList.remove('active');
+      if (i === index) s.classList.add('active');
+    });
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      showSlide(currentSlide);
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      nextSlide();
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      prevSlide();
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+</script>
+</body>
+</html>
