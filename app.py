@@ -180,8 +180,13 @@ def get_genai_client(api_key):
 # Sidebar Configuration
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Sharjah_Archaeology_Authority_Logo.png/320px-Sharjah_Archaeology_Authority_Logo.png", 
-             fallback="images/Gemini.png", width=180)
+    if os.path.exists("images/Gemini.png"):
+        st.image("images/Gemini.png", width=180)
+    else:
+        try:
+            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Sharjah_Archaeology_Authority_Logo.png/320px-Sharjah_Archaeology_Authority_Logo.png", width=180)
+        except Exception:
+            pass
     
     st.markdown("### ⚙️ إعدادات المنصة")
     
@@ -356,7 +361,11 @@ with tab_pottery:
                 cv2.circle(rim_vis, (int(cx), int(cy)), int(radius), (255, 0, 0), 2)
                 rim_vis_img = rim_vis
 
-                st.image([img_np, rim_vis], caption=["الكسرة الأصلية", f"الحافة المستخرجة (القطر التقديري: {estimated_diameter_cm} سم)"], use_container_width=True)
+                col_sub1, col_sub2 = st.columns(2)
+                with col_sub1:
+                    st.image(img_np, caption="الكسرة الأصلية", use_container_width=True)
+                with col_sub2:
+                    st.image(rim_vis, caption=f"الحافة المستخرجة (القطر التقديري: {estimated_diameter_cm} سم)", use_container_width=True)
             else:
                 st.image(img_np, caption="الكسرة الأصلية (لم يتم رصد حواف كافية)", use_container_width=True)
 
