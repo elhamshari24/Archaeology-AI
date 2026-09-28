@@ -441,7 +441,8 @@ with tab_coin:
                 label="📥 تحميل التقرير (Markdown)",
                 data=st.session_state["coin_report_output"],
                 file_name="Archaeological_Coin_Report.md",
-                mime="text/markdown"
+                mime="text/markdown",
+                key="btn_dl_coin_report"
             )
         else:
             st.info("قم برفع صورة واضغط على 'بدء التحليل' لظهور التقرير الأثري هنا.")
@@ -545,7 +546,8 @@ with tab_pottery:
                     label="📥 تحميل الاستمارة (JSON)",
                     data=json.dumps(parsed_json, ensure_ascii=False, indent=2),
                     file_name="Stratigraphic_Context_Unit_Record.json",
-                    mime="application/json"
+                    mime="application/json",
+                    key="btn_dl_pottery_json"
                 )
             except Exception:
                 st.code(st.session_state["pottery_json_output"], language="json")
@@ -553,7 +555,8 @@ with tab_pottery:
                     label="📥 تحميل الاستمارة (JSON)",
                     data=st.session_state["pottery_json_output"],
                     file_name="Stratigraphic_Context_Unit_Record.json",
-                    mime="application/json"
+                    mime="application/json",
+                    key="btn_dl_pottery_raw"
                 )
         else:
             st.info("قم برفع صورة كسرة فخار واضغط على زر التوليد لإنتاج الاستمارة الميدانية.")
@@ -851,7 +854,8 @@ with tab_structural:
                 label="📥 تحميل تقرير الصيانة (Markdown)",
                 data=st.session_state["wall_report_output"],
                 file_name="EAMENA_Structural_Condition_Report.md",
-                mime="text/markdown"
+                mime="text/markdown",
+                key="btn_dl_wall_report"
             )
         else:
             st.info("قم برفع صورة الجدار واضغط على 'توليد تقرير الصيانة' لعرض التقييم المعتمد هنا.")
@@ -994,7 +998,8 @@ with tab_predicting:
                 label="📓 تنزيل دفتر (Predicting the Past.ipynb)",
                 data=nb_bytes_pred,
                 file_name="Predicting_the_Past.ipynb",
-                mime="application/x-ipynb+json"
+                mime="application/x-ipynb+json",
+                key="btn_dl_pred_nb_tab5"
             )
 
     with col_it2:
@@ -1047,7 +1052,8 @@ with tab_predicting:
                 label="📥 تحميل تقرير الاستعادة والنسب (Ithaca Report Markdown)",
                 data=st.session_state["ithaca_report_output"],
                 file_name="Predicting_The_Past_Epigraphic_Report.md",
-                mime="text/markdown"
+                mime="text/markdown",
+                key="btn_dl_ithaca_report"
             )
         else:
             st.info("اخت�� العينة النقشية واضغط على زر تشغيل النموذج لاستعراض مقترحات الاستعادة وتوزيع الاحتمالات الجغرافية والزمنية.")
@@ -1080,7 +1086,8 @@ with tab_presentation:
                 label="📥 تحميل ملف العرض التقديمي الكامل (PDF)",
                 data=pdf_bytes_data,
                 file_name="ورشة_الذكاء_الاصطناعي_في_توثيق_المواقع_والقطع_الأثرية.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
+                key="btn_dl_pres_pdf"
             )
             st.success("الملف جاهز للاستعراض والتنزيل المباشر.")
         else:
@@ -1093,7 +1100,8 @@ with tab_presentation:
                 label="🌐 تنزيل العرض التفاعلي (HTML)",
                 data=html_presentation_code,
                 file_name="presentation.html",
-                mime="text/html"
+                mime="text/html",
+                key="btn_dl_pres_html"
             )
 
         if os.path.exists("colab/Predicting the Past.ipynb"):
@@ -1103,7 +1111,8 @@ with tab_presentation:
                 label="📓 تنزيل دفتر (Predicting the Past.ipynb)",
                 data=nb_bytes,
                 file_name="Predicting_the_Past.ipynb",
-                mime="application/x-ipynb+json"
+                mime="application/x-ipynb+json",
+                key="btn_dl_pred_nb_tab6"
             )
 
     # -------------------------------------------------------------------------
@@ -1435,7 +1444,8 @@ with tab_presentation:
             chosen_module_idx = st.selectbox(
                 "اختر المحور لتوليد عرض PowerPoint مخصص له:",
                 range(len(pptx_modules)),
-                format_func=lambda i: f"المحور {pptx_modules[i]['id']}: {pptx_modules[i]['title']}"
+                format_func=lambda i: f"المحور {pptx_modules[i]['id']}: {pptx_modules[i]['title']}",
+                key="pptx_module_sel"
             )
         with col_pptx_btn:
             selected_mod = pptx_modules[chosen_module_idx]
@@ -1444,7 +1454,8 @@ with tab_presentation:
                 label=f"📊 تنزيل عرض ({selected_mod['filename']})",
                 data=pptx_data,
                 file_name=selected_mod["filename"],
-                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                key="btn_dl_pptx_deck"
             )
     else:
         st.info("مكتبة python-pptx متوفرة في requirements.txt وسيتم تفعيل توليد شرائح PPTX تلقائياً على Streamlit Cloud.")
