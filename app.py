@@ -857,150 +857,200 @@ with tab_structural:
             st.info("قم برفع صورة الجدار واضغط على 'توليد تقرير الصيانة' لعرض التقييم المعتمد هنا.")
 
 # =============================================================================
-# TAB 5: التنبؤ بالماضي (Predicting the Past.ipynb)
+# TAB 5: التنبؤ بالماضي (Predicting the Past — Ithaca & Aeneas)
 # =============================================================================
 with tab_predicting:
-    st.header("🔮 التنبؤ بالماضي (Predicting the Past): النمذجة التنبؤية بالذكاء الجغرافي (GeoAI)")
-    st.write("تطبيق النمذجة التنبؤية المتطورة للرؤية الحاسوبية والاستشعار عن بعد وفق كود دفتر `Predicting the Past.ipynb`: محاكاة واكتشاف الشواهد الأثرية المدفونة تحت الرمال (أساسات سور مستطيل، مدافن ركامية Tumuli، ومسار فلج قديم Paleochannel)، مع كشف الشذوذ الطيفي وتصدير إحداثيات GeoJSON لبرامج الخرائط، ومولّد عروض PowerPoint السيادية لهيئة الشارقة للآثار.")
+    st.header("🔮 التنبؤ بالماضي (Predicting the Past — Ithaca & Aeneas)")
+    st.write("المنصة المعتمدة على الذكاء الاصطناعي التوليدي من DeepMind وجامعة أكسفورد (predictingthepast.com) لمعالجة، وترميم، ونسب وتأريخ النصوص والنقوش التاريخية القديمة (Contextualising, Restoring, and Attributing Ancient Inscriptions).")
 
-    col_pred_ctrl, col_pred_info = st.columns([1, 1], gap="large")
+    # Banner with official link
+    st.markdown("""
+    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #d4a373; border-radius: 12px; padding: 18px; margin-bottom: 22px;">
+        <h4 style="margin: 0 0 8px 0; color: #d4a373;">🏛️ عن مبادرة Predicting the Past (نماذج Ithaca و Aeneas)</h4>
+        <p style="margin: 0; color: #cbd5e1; font-size: 0.95rem; line-height: 1.8;">
+            مبادرة علمية عا��مية طُورت بالتعاون بين <b>Google DeepMind</b> و<b>جامعة أكسفورد</b> وجامعة كا فوسكاري بالبندقية ونُشرت في مجلة <i>Nature</i>. تهدف النماذج التوليدية المتخصصة (<b>Ithaca</b> للنقوش اليونانية و<b>Aeneas</b> للنقوش اللاتينية) إلى مساعدة الباحثين والمؤرخين عبر ثلاثة مسارات رئيسية:
+            <br>1️⃣ <b>ترميم واستكمال النصوص المتآكلة (Text Restoration)</b> للأحرف والكلمات المفقودة [---] بدقة تفوق 71%.
+            <br>2️⃣ <b>تحديد الموطن الجغرافي ونسب النقش (Geographical Attribution)</b> وتوزيع احتمالات مكان الكتابة أو دار السك بدقة 84%.
+            <br>3️⃣ <b>التأريخ الزمني الدقيق (Chronological Dating)</b> وتحديد العقود والحقب الزمنية المرجحة في نطاق 30 عاماً.
+        </p>
+        <div style="margin-top: 12px;">
+            <a href="https://predictingthepast.com/" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: bold; font-size: 1rem;">
+                🌐 زيارة المنصة الرسمية لـ DeepMind وأكسفورد: https://predictingthepast.com/
+            </a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with col_pred_ctrl:
-        st.markdown("#### 🎛️ معايير خوارزمية الرصد والاستكشاف التنبؤي:")
-        pred_sensitivity = st.slider("حساسية الكشف (Sensitivity):", min_value=0.05, max_value=0.40, value=0.18, step=0.01, key="pred_sens")
-        pred_min_area = st.slider("الحد الأدنى للمساحة (Min Area Pixels):", min_value=10, max_value=200, value=30, step=5, key="pred_area")
-        pred_blur = st.slider("مرشح التنعيم وتصفية الضوضاء (Blur Kernel):", min_value=1, max_value=15, value=5, step=2, key="pred_blur")
+    col_it1, col_it2 = st.columns([1, 1], gap="large")
 
-    with col_pred_info:
-        st.markdown("""
-        **المعالم الأثرية المستهدفة في النموذج التنبؤي:**
-        1. 🏛️ **أساسات سور مستطيل مدفون:** يتميز بارتفاع انعكاس النطاق الأحمر وانخفاض طفيف في الأشعة تحت الحمراء القريبة (NIR).
-        2. ⭕ **مدافن ركامية دائرية (Burial Cairns / Tumuli):** مدافن تاريخية دائرية تظهر كثافة حجرية مغايرة للتربة الرملية.
-        3. 🌊 **مسار قناة فلج قديم جاف (Paleochannel):** قناة مائية مطمورة تحت الرمال تحتفظ برطوبة تباينية عالية في نطاق NIR.
-        """)
-
-    def generate_pred_past_scene():
-        np.random.seed(42)
-        size = 400
-        base_sand = np.random.normal(0.65, 0.05, (size, size))
-        sand_dunes = np.sin(np.linspace(0, 10, size))[:, None] * 0.08
-        soil_background = np.clip(base_sand + sand_dunes, 0.2, 0.9)
-
-        red_band = soil_background.copy()
-        green_band = soil_background * 0.85
-        blue_band = soil_background * 0.70
-        nir_band = soil_background * 0.90
-
-        # معْلم 1: أساسات سور مستطيل مدفون
-        rr, cc = np.meshgrid(np.arange(size), np.arange(size))
-        wall_mask = ((rr > 80) & (rr < 220) & ((cc == 80) | (cc == 220))) | \
-                    ((cc > 80) & (cc < 220) & ((rr == 80) | (rr == 220)))
-        wall_mask = cv2.dilate(wall_mask.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
-        red_band[wall_mask] += 0.18
-        nir_band[wall_mask] -= 0.12
-
-        # معْلم 2: مدافن ركامية دائرية (Burial Cairns)
-        cairn_centers = [(150, 320), (300, 120), (320, 290)]
-        for cy, cx in cairn_centers:
-            dist_sq = (rr - cy)**2 + (cc - cx)**2
-            cairn_mask = dist_sq < 14**2
-            red_band[cairn_mask] += 0.22
-            nir_band[cairn_mask] -= 0.15
-
-        # معْلم 3: مسار قناة فلج قديم جاف
-        falaj_curve = (np.sin(np.linspace(0, 3, size)) * 50 + 260).astype(int)
-        for r in range(size):
-            c = falaj_curve[r]
-            if 0 <= c < size:
-                falaj_mask = (abs(cc - c) < 3) & (rr == r)
-                nir_band[falaj_mask] += 0.15
-                red_band[falaj_mask] -= 0.08
-
-        rgb = (np.stack([np.clip(red_band, 0, 1),
-                         np.clip(green_band, 0, 1),
-                         np.clip(blue_band, 0, 1)], axis=-1) * 255).astype(np.uint8)
-
-        return rgb, red_band, nir_band
-
-    rgb_p, b_red_p, b_nir_p = generate_pred_past_scene()
-
-    # مؤشر ANDI
-    andi_p = (b_red_p - b_nir_p) / (b_red_p + b_nir_p + 1e-6)
-    andi_norm_p = cv2.normalize(andi_p, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    k_p = pred_blur if pred_blur % 2 == 1 else pred_blur + 1
-    blurred_p = cv2.GaussianBlur(andi_norm_p, (k_p, k_p), 0)
-    thresh_val_p = int(255 * (1.0 - pred_sensitivity))
-    _, thresh_p = cv2.threshold(blurred_p, thresh_val_p, 255, cv2.THRESH_BINARY)
-    contours_p, _ = cv2.findContours(thresh_p, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    overlay_p = rgb_p.copy()
-    det_features = []
-    det_cnt_p = 0
-    for cnt in contours_p:
-        area_val = cv2.contourArea(cnt)
-        if area_val > pred_min_area:
-            det_cnt_p += 1
-            x, y, w, h = cv2.boundingRect(cnt)
-            cv2.rectangle(overlay_p, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(overlay_p, f"Site #{det_cnt_p}", (x, max(14, y - 4)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
-            det_features.append({
-                "type": "Feature",
-                "properties": {
-                    "id": det_cnt_p,
-                    "type": "Archaeological Anomaly",
-                    "area_pixels": float(area_val),
-                    "confidence": round(min(0.96, 0.75 + (area_val / 500)), 2)
-                },
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]]
-                }
-            })
-
-    st.markdown("---")
-    st.subheader(f"📊 لوحات التحليل الطيفي والرصد الآلي (تم رصد: {det_cnt_p} مواقع وهياكل مدفونة)")
-
-    col_pv1, col_pv2, col_pv3 = st.columns(3)
-    with col_pv1:
-        st.image(rgb_p, caption="1. المشهد الفضائي الطبيعي (RGB)", use_container_width=True)
-    with col_pv2:
-        heatmap_p = cv2.applyColorMap(andi_norm_p, cv2.COLORMAP_INFERNO)
-        st.image(cv2.cvtColor(heatmap_p, cv2.COLOR_BGR2RGB), caption="2. مؤشر الشذوذ الطيفي (ANDI)", use_container_width=True)
-    with col_pv3:
-        st.image(overlay_p, caption=f"3. الاكتشاف الآلي بالذكاء الاصطناعي ({det_cnt_p} معالم)", use_container_width=True)
-
-    st.markdown("#### 💻 سجل المخرجات الرقمية للنموذج (Terminal Output):")
-    terminal_code = f"""> RUNNING: Archaeological_Anomaly_Detector.py (Predicting the Past)
-> BANDS: Red (B4), NIR (B8) | SENSITIVITY: {pred_sensitivity:.2f} | BLUR: {k_p}x{k_p}
-[+] DETECTED: Rectangular Wall Enclosure (Conf: 94%)
-[+] DETECTED: Paleochannel / Ancient Falaj (Conf: 88%)
-[+] DETECTED: {det_cnt_p} Circular Burial Cairns / Tumuli (Conf: 91%)
-> STATUS: GeoJSON Coordinates Exported for GIS (QGIS / ArcGIS) validation."""
-    st.code(terminal_code, language="bash")
-
-    col_exp1, col_exp2 = st.columns([1, 1])
-    with col_exp1:
-        geojson_data = {
-            "type": "FeatureCollection",
-            "features": det_features
-        }
-        st.download_button(
-            label="🗺️ تصدير إحداثيات الشواهد المكتشفة (GeoJSON لـ QGIS)",
-            data=json.dumps(geojson_data, ensure_ascii=False, indent=2),
-            file_name="predicting_the_past_anomalies.geojson",
-            mime="application/geo+json"
+    with col_it1:
+        st.subheader("📝 إدخال النقيشة أو المأثورة المتآكلة")
+        
+        input_mode = st.radio(
+            "طريقة فحص النقيشة:",
+            ["نص نقشي مع فجوات تآكل [---] (Epigraphic Text Input)", "فحص بصري من صورة نقش / مسكوكة (Vision Analysis)"],
+            horizontal=True
         )
-    with col_exp2:
+
+        preset_text = ""
+        target_script = "كوفي مبكر (مسكوكات إسلامية - الشارقة)"
+        user_damaged_text = ""
+        ithaca_image = None
+
+        if input_mode.startswith("نص"):
+            inscription_presets = {
+                "درهم موقع المدام بالشارقة (تآكل اسم دار السك)": {
+                    "text": "بسم الله ضرب هذا الدرهم بـ [---] سنة سبعين ومائة",
+                    "script": "كوفي مبكر (مسكوكات إسلامية - ��لشارقة)",
+                    "target": "استكمال دار السك المفقودة وتأريخها ونسبها الجغرافي"
+                },
+                "نقيشة شاهد قبر مسند صخرية من مليحة": {
+                    "text": "نفس وقبر [---] بن كاهل بن عمـ[---] ذو تيم بن أوس عـ[---]",
+                    "script": "خط المسند الجنوبي القديم (مكتشفات مليحة)",
+                    "target": "استكمال أسماء النسب والقبيلة وتأريخ النقيشة"
+                },
+                "مسكوكة الملكة أبيئيل من مليحة (نقش آرامي/حسياني)": {
+                    "text": "أبيئيل ملـ[---] عمان و[---]",
+                    "script": "الآرامي والحسياني القديم (حضارة مليحة وعمان القديمة)",
+                    "target": "استكمال لقب الحاكم 'ملك/ملكة عمان' وحقبة السك"
+                },
+                "مرسوم أثيني كلاسيكي (معيار نموذج Ithaca اليوناني)": {
+                    "text": "ἔδοξεν τῇ βουλῇ καὶ τῷ δήμῳ [---] ἐπεστάτει",
+                    "script": "اليوناني القديم (Ancient Greek - معيار Ithaca)",
+                    "target": "استكمال اسم الخطيب/الحاكم ونسب المرسوم إلى أتيكا"
+                },
+                "نقيشة إمبراطورية رومانية (معيار نموذج Aeneas اللاتيني)": {
+                    "text": "IMP CAESAR DIVI [---] AUGUSTUS PONTIFEX MAXIMUS [---]",
+                    "script": "اللاتيني الإمبراطوري (Latin - معيار Aeneas)",
+                    "target": "استكمال ألقاب الإمبراطور وتأريخ الحقبة الرومانية"
+                },
+                "نص نقشي مخصص...": {
+                    "text": "",
+                    "script": "كوفي مبكر (مسكوكات إسلامية - الشارقة)",
+                    "target": "تحديد يدوي"
+                }
+            }
+
+            chosen_preset_name = st.selectbox(
+                "اختر عينة نقشية تاريخية أو أدخل نصك:",
+                list(inscription_presets.keys())
+            )
+            
+            preset_obj = inscription_presets[chosen_preset_name]
+            default_txt = preset_obj["text"]
+            
+            user_damaged_text = st.text_area(
+                "النص النقشي مع تمثيل مواضع التآكل والفقد بـ [---]:",
+                value=default_txt,
+                height=130,
+                help="استخدم [---] لتمثيل الكلمات أو الحروف المتآكلة أو المفقودة."
+            )
+            
+            target_script = st.selectbox(
+                "نوع الخط والحضارة المرجعية للنقيشة:",
+                [
+                    "كوفي مبكر (مسكوكات إسلامية - الشارقة)",
+                    "خط المسند الجنوبي القديم (مكتشفات مليحة)",
+                    "الآرامي والحسياني القديم (حضارة مليحة وعمان القديمة)",
+                    "اليوناني القديم (Ancient Greek - معيار Ithaca)",
+                    "اللاتيني الإمبراطوري (Latin - معيار Aeneas)"
+                ],
+                index=0 if "المدام" in chosen_preset_name else (1 if "مسند" in chosen_preset_name else (2 if "أبيئيل" in chosen_preset_name else (3 if "Ithaca" in chosen_preset_name else 0)))
+            )
+        else:
+            st.markdown("**رفع أو اختيار صورة النقيشة أو المسكوكة:**")
+            ithaca_img_choice = st.selectbox(
+                "اختر عينة مسكوكة/ن��يشة من الأرشيف أو ارفع ملفك:",
+                [
+                    "درهم إسلامي بنقوش هامشية متآكلة (dfdff.png)",
+                    "مسكوكة برونزية أثرية قديمة (47-91.png)",
+                    "لقية مسكوكة فضية (17-gr9.jpg)",
+                    "رفع صورة مخصصة من جهازي..."
+                ]
+            )
+            if ithaca_img_choice.startswith("درهم"):
+                ithaca_image = Image.open("images/dfdff.png").convert("RGB")
+                st.image(ithaca_image, caption="درهم إسلامي من أرشيف الشارقة (dfdff.png)", use_container_width=True)
+            elif ithaca_img_choice.startswith("مسكوكة برونزية"):
+                ithaca_image = Image.open("images/47-91.png").convert("RGB")
+                st.image(ithaca_image, caption="مسكوكة برونزية قديمة (47-91.png)", use_container_width=True)
+            elif ithaca_img_choice.startswith("لقية"):
+                ithaca_image = Image.open("images/17-gr9.jpg").convert("RGB")
+                st.image(ithaca_image, caption="لقية أثرية مسكوكة (17-gr9.jpg)", use_container_width=True)
+            else:
+                up_ithaca = st.file_uploader("ارفع صورة النقيشة الم��آكلة (JPG, PNG):", type=["jpg", "jpeg", "png"], key="ithaca_img_up")
+                if up_ithaca:
+                    ithaca_image = Image.open(up_ithaca).convert("RGB")
+                    st.image(ithaca_image, caption="الصورة المرفوعة", use_container_width=True)
+
+            user_damaged_text = st.text_input("ملاحظات أو قراءة أولية للنقش (اختياري):", value="قراءة جزئية لمأثورات الطوق والمركز مع مناطق متآكلة غير مقروءة")
+
+        ithaca_run_btn = st.button("🔮 بدء المعالجة بنموذج Predicting the Past (Ithaca / Aeneas AI)", key="btn_run_ithaca_eval")
+
         if os.path.exists("colab/Predicting the Past.ipynb"):
             with open("colab/Predicting the Past.ipynb", "rb") as f_nb:
                 nb_bytes_pred = f_nb.read()
             st.download_button(
-                label="📓 تنزيل كود دفتر (Predicting the Past.ipynb)",
+                label="📓 تنزيل دفتر (Predicting the Past.ipynb)",
                 data=nb_bytes_pred,
                 file_name="Predicting_the_Past.ipynb",
                 mime="application/x-ipynb+json"
             )
+
+    with col_it2:
+        st.subheader("📊 مخرجات الاستعادة والنسب والتأريخ (Epigraphic Intelligence)")
+
+        if ithaca_run_btn:
+            client = get_genai_client(current_api_key)
+            if not client:
+                st.warning("يرجى إدخال مفتاح Google Gemini API في القائمة الجانبية لتشغيل النموذج التوليدي.")
+            else:
+                with st.spinner(f"جاري تطبيق خوارزمية Ithaca & Aeneas ونمذجة الفجوات عبر {selected_model}..."):
+                    ithaca_prompt = f"""
+بصفتك الذكاء الاصطناعي التوليدي المتخصص في فقه النقوش والمسكوكات التاريخية (Collaborative Epigraphic AI) وفق منهجية نماذج Ithaca و Aeneas ومبادرة Predicting the Past (predictingthepast.com المطورة مع DeepMind وجامعة أكسفورد):
+
+المعطيات:
+- نوع الخط / السياق الحضاري: {target_script}
+- النص المتآكل / المقروء مع الفجوات [---]: {user_damaged_text}
+
+المطلوب: إجراء تحليل تاريخي وفقهي متكامل وإخراج تقرير رسمي بصيغة Markdown يتضمن بدقة:
+1. ✍️ **استكمال وترميم الفجوات المتآكلة (Text Restoration):**
+   - تقديم أفضل 3 مقترحات ترجيحية لملء كل فجوة [---].
+   - نسبة الثقة الاحتمالية (Restoration Probability %) لكل مقترح.
+   - النص الكامل المستعاد لكل مقترح مع تمييز الكلمات المستعادة بخط بارز.
+2. 🗺️ **النسب الجغرافي وتحديد الموطن / دار السك (Geographical Attribution):**
+   - توزيع الاحتمالات لأبرز المناطق الجغرافية أو دور السك المتوقعة (مثل: الكوفة، البصرة، واسط، دمشق، مليحة، المدام، أثينا، روما...).
+   - نسبة الاحتمال لكل موطن (Geographical Probability Distribution).
+3. ⏳ **التأريخ الزمني الدقيق (Chronological Dating):**
+   - العقد أو السنة التقديرية بدقة (Dating Estimate).
+   - النطاق الزمني الاحتمالي (Date Interval) مع ذكر الخليفة أو الحاكم أو الحقبة المتطابقة.
+4. 📜 **التعليل اللغوي والتاريخي (Epigraphic Rationale):**
+   - المقاربات مع نقوش ومسكوكات مكتشفات هيئة الشارقة للآثار أو المجموعات العالمية المشابهة.
+   - تفسير سبب ترجيح المقترح الأول لغوياً ومورفولوجياً.
+"""
+                    try:
+                        content_payload = [ithaca_prompt]
+                        if input_mode.startswith("فحص بصري") and ithaca_image is not None:
+                            content_payload = [ithaca_image, ithaca_prompt]
+
+                        ithaca_res = client.models.generate_content(
+                            model=selected_model,
+                            contents=content_payload
+                        )
+                        st.session_state["ithaca_report_output"] = ithaca_res.text
+                    except Exception as e:
+                        st.error(f"خطأ أثناء تشغيل النموذج: {e}")
+
+        if "ithaca_report_output" in st.session_state:
+            st.markdown(f'<div class="report-box">{st.session_state["ithaca_report_output"]}</div>', unsafe_allow_html=True)
+            st.download_button(
+                label="📥 تحميل تقرير الاستعادة والنسب (Ithaca Report Markdown)",
+                data=st.session_state["ithaca_report_output"],
+                file_name="Predicting_The_Past_Epigraphic_Report.md",
+                mime="text/markdown"
+            )
+        else:
+            st.info("اخت�� العينة النقشية واضغط على زر تشغيل النموذج لاستعراض مقترحات الاستعادة وتوزيع الاحتمالات الجغرافية والزمنية.")
 
 # =============================================================================
 # TAB 6: العرض التقديمي الكامل (PDF) ودليل الورشة
