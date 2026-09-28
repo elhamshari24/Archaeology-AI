@@ -246,11 +246,20 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 # API Key and Model Helpers
 # -----------------------------------------------------------------------------
+def safe_secret(name):
+    """Read a Streamlit secret without raising when no secrets.toml exists."""
+    try:
+        if name in st.secrets:
+            return st.secrets[name]
+    except Exception:
+        pass
+    return None
+
 def get_api_key():
     """Retrieve Gemini API key from user input, Streamlit Secrets, or environment."""
     key = st.session_state.get("gemini_key", "").strip()
-    if not key and "GEMINI_API_KEY" in st.secrets:
-        key = st.secrets["GEMINI_API_KEY"]
+    if not key:
+        key = (safe_secret("GEMINI_API_KEY") or "").strip()
     if not key:
         key = os.getenv("GEMINI_API_KEY", "").strip()
     return key
@@ -326,11 +335,7 @@ with st.sidebar:
     st.markdown("### ⚙️ إعدادات المنصة")
     
     # Pre-fill from secrets or env if present
-    default_key = ""
-    if "GEMINI_API_KEY" in st.secrets:
-        default_key = st.secrets["GEMINI_API_KEY"]
-    elif os.getenv("GEMINI_API_KEY"):
-        default_key = os.getenv("GEMINI_API_KEY")
+    default_key = safe_secret("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
 
     user_api_key = st.text_input(
         "🔑 مفتاح Google Gemini API:",

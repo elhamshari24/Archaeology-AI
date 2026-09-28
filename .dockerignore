@@ -1,0 +1,13 @@
+# ملفات لا تُنسخ داخل صورة Docker (تقليل الحجم وتسريع البناء)
+.venv/
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+social/
+.streamlit/secrets.toml
+.env
+.env.local
+static/
+*.log
