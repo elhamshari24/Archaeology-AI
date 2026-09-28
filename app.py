@@ -57,7 +57,7 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="منصة الذكاء الاصطناعي الأثري — هيئة الشارقة للآثار",
+    page_title="الذكاء الاصطناعي في توثيق المواقع والقطع الأثرية",
     page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -350,10 +350,6 @@ with st.sidebar:
         "gemini-3.5-flash",
         "gemini-3.7-flash",
         "gemini-3.8-flash",
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
         "نموذج مخصص (Custom Model)..."
     ]
     chosen_model = st.selectbox("🤖 النموذج المعتمد:", model_options, index=0)
@@ -418,9 +414,15 @@ with tab_coin:
         
         coin_sample_options = {
             "رفع صورة مخصصة من جهازي": None,
-            "مسكوكة أثرية (17-gr9.jpg)": "images/17-gr9.jpg",
-            "درهم إسلامي بنقوش عربية (dfdff.png)": "images/dfdff.png",
-            "كسرة نقدية برونزية (47-91.png)": "images/47-91.png"
+            "شاهد قبر": "images/masnad.png",
+            "درهم سلطان": "images/Picture1.jpg",
+            "درهم اسلامي": "images/hfgd8.jpg",
+            "كسرة طبق": "images/dfdff.png",
+            "حصن الذيد": "images/al-dhaid-fort-2.webp",
+            "حصن دبا": "images/7195313.jpeg",
+            "عملة الاسكندر": "images/47-91.png",
+            "خاتم ذهبي": "images/11.png",
+            "كسرة فخارية": "images/8.png"
         }
         chosen_coin_sample = st.selectbox("اختر عينة تجريبية أو ارفع ملفك:", list(coin_sample_options.keys()), key="coin_sample_sel")
         
@@ -494,18 +496,34 @@ with tab_pottery:
     col_p1, col_p2 = st.columns([1, 1], gap="large")
 
     with col_p1:
-        st.subheader("📤 صورة الكسرة الفخارية ومحاكاة الحافة")
-        up_pottery = st.file_uploader("ارفع صورة الكسرة الفخارية (Rim / Sherd):", type=["jpg", "jpeg", "png"], key="pot_file")
+        st.subheader("📤 اختيار أو رفع صورة الكسرة الفخارية")
+        
+        pottery_sample_options = {
+            "رفع صورة مخصصة من جهازي": None,
+            "شاهد قبر": "images/masnad.png",
+            "درهم سلطان": "images/Picture1.jpg",
+            "درهم اسلامي": "images/hfgd8.jpg",
+            "كسرة طبق": "images/dfdff.png",
+            "حصن الذيد": "images/al-dhaid-fort-2.webp",
+            "حصن دبا": "images/7195313.jpeg",
+            "عملة الاسكندر": "images/47-91.png",
+            "خاتم ذهبي": "images/11.png",
+            "كسرة فخارية": "images/8.png"
+        }
+        chosen_pottery_sample = st.selectbox("اختر عينة تجريبية أو ارفع ملفك:", list(pottery_sample_options.keys()), key="pot_sample_sel")
+        
+        pottery_img = None
+        if pottery_sample_options[chosen_pottery_sample] and os.path.exists(pottery_sample_options[chosen_pottery_sample]):
+            pottery_img = Image.open(pottery_sample_options[chosen_pottery_sample]).convert("RGB")
+            st.image(pottery_img, caption=f"عينة: {chosen_pottery_sample}", use_container_width=True)
+        else:
+            up_pottery = st.file_uploader("ارفع صورة الكسرة الفخارية (Rim / Sherd):", type=["jpg", "jpeg", "png"], key="pot_file")
+            if up_pottery:
+                pottery_img = Image.open(up_pottery).convert("RGB")
+                st.image(pottery_img, caption="الصورة المرفوعة", use_container_width=True)
         
         canny_low = st.slider("عتبة Canny السفلى (Edge Low):", 10, 100, 40)
         canny_high = st.slider("عتبة Canny العليا (Edge High):", 80, 250, 130)
-        
-        pottery_img = None
-        if up_pottery:
-            pottery_img = Image.open(up_pottery).convert("RGB")
-        elif os.path.exists("images/17-gr9.jpg"):
-            if st.checkbox("استخدام عينة تجريبية للكسرة", key="chk_pot_sample"):
-                pottery_img = Image.open("images/17-gr9.jpg").convert("RGB")
 
         estimated_diameter_cm = "غير محدد"
         rim_vis_img = None
@@ -804,9 +822,15 @@ with tab_structural:
         
         struct_sample_options = {
             "رفع صورة مخصصة من جهازي": None,
-            "جدار حصن الذيد التاريخي (al-dhaid-fort-2.webp)": "images/al-dhaid-fort-2.webp",
-            "شروخ عميقة في جدار أثري (7195313.jpeg)": "images/7195313.jpeg",
-            "تصدعات مبنى تراثي (bef87bdf-d430-49b0-819c-632aa9869438.png)": "images/bef87bdf-d430-49b0-819c-632aa9869438.png"
+            "شاهد قبر": "images/masnad.png",
+            "درهم سلطان": "images/Picture1.jpg",
+            "درهم اسلامي": "images/hfgd8.jpg",
+            "كسرة طبق": "images/dfdff.png",
+            "حصن الذيد": "images/al-dhaid-fort-2.webp",
+            "حصن دبا": "images/7195313.jpeg",
+            "عملة الاسكندر": "images/47-91.png",
+            "خاتم ذهبي": "images/11.png",
+            "كسرة فخارية": "images/8.png"
         }
         chosen_struct_sample = st.selectbox("اختر عينة تجريبية أو ارفع ملفك:", list(struct_sample_options.keys()), key="struct_sample_sel")
 
@@ -1000,24 +1024,23 @@ with tab_predicting:
             )
         else:
             st.markdown("**رفع أو اختيار صورة النقيشة أو المسكوكة:**")
-            ithaca_img_choice = st.selectbox(
-                "اختر عينة مسكوكة/نقيشة من الأرشيف أو ارفع ملفك:",
-                [
-                    "درهم إسلامي بنقوش هامشية متآكلة (dfdff.png)",
-                    "مسكوكة برونزية أثرية قديمة (47-91.png)",
-                    "لقية مسكوكة فضية (17-gr9.jpg)",
-                    "رفع صورة مخصصة من جهازي..."
-                ]
-            )
-            if ithaca_img_choice.startswith("درهم"):
-                ithaca_image = Image.open("images/dfdff.png").convert("RGB")
-                st.image(ithaca_image, caption="درهم إسلامي من أرشيف الشارقة (dfdff.png)", use_container_width=True)
-            elif ithaca_img_choice.startswith("مسكوكة برونزية"):
-                ithaca_image = Image.open("images/47-91.png").convert("RGB")
-                st.image(ithaca_image, caption="مسكوكة برونزية قديمة (47-91.png)", use_container_width=True)
-            elif ithaca_img_choice.startswith("لقية"):
-                ithaca_image = Image.open("images/17-gr9.jpg").convert("RGB")
-                st.image(ithaca_image, caption="لقية أثرية مسكوكة (17-gr9.jpg)", use_container_width=True)
+            ithaca_sample_options = {
+                "رفع صورة مخصصة من جهازي": None,
+                "شاهد قبر": "images/masnad.png",
+                "درهم سلطان": "images/Picture1.jpg",
+                "درهم اسلامي": "images/hfgd8.jpg",
+                "كسرة طبق": "images/dfdff.png",
+                "حصن الذيد": "images/al-dhaid-fort-2.webp",
+                "حصن دبا": "images/7195313.jpeg",
+                "عملة الاسكندر": "images/47-91.png",
+                "خاتم ذهبي": "images/11.png",
+                "كسرة فخارية": "images/8.png"
+            }
+            chosen_ithaca_sample = st.selectbox("اختر عينة تجريبية أو ارفع ملفك:", list(ithaca_sample_options.keys()), key="ithaca_sample_sel")
+            
+            if ithaca_sample_options[chosen_ithaca_sample] and os.path.exists(ithaca_sample_options[chosen_ithaca_sample]):
+                ithaca_image = Image.open(ithaca_sample_options[chosen_ithaca_sample]).convert("RGB")
+                st.image(ithaca_image, caption=f"عينة: {chosen_ithaca_sample}", use_container_width=True)
             else:
                 up_ithaca = st.file_uploader("ارفع صورة النقيشة المتآكلة (JPG, PNG):", type=["jpg", "jpeg", "png"], key="ithaca_img_up")
                 if up_ithaca:
