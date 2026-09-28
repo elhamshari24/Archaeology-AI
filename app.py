@@ -2,6 +2,7 @@ import os
 import io
 import json
 import base64
+import shutil
 import datetime
 import numpy as np
 import cv2
@@ -44,6 +45,12 @@ try:
     HAS_PPTX = True
 except ImportError:
     HAS_PPTX = False
+
+try:
+    import fitz  # PyMuPDF — renders PDF slides as images for the interactive viewer
+    HAS_FITZ = True
+except ImportError:
+    HAS_FITZ = False
 
 # Load local environment variables if available
 load_dotenv()
@@ -254,13 +261,38 @@ def get_genai_client(api_key):
         st.error("مكتبة `google-genai` غير مثبتة. يرجى تثبيتها عبر requirements.txt")
         return None
     if not api_key:
-        st.warning("⚠️ يرجى إدخال مفتاح Google Gemini API في القائمة الجانبية لتفع��ل التحليل بالذكاء الاصطناعي.")
+        st.warning("⚠️ يرجى إدخال مفتاح Google Gemini API في القائمة الجانبية لتفعيل التحليل بالذكاء الاصطناعي.")
         return None
     try:
         return genai.Client(api_key=api_key)
     except Exception as e:
         st.error(f"خطأ في تهيئة عميل الذكاء الاصطناعي: {e}")
         return None
+
+def ensure_presentation_static_copy(pdf_path):
+    """Copy the presentation PDF into ./static so Streamlit serves it for full-screen viewing."""
+    try:
+        os.makedirs("static", exist_ok=True)
+        target_path = os.path.join("static", "presentation_workshop.pdf")
+        if pdf_path and os.path.exists(pdf_path):
+            if (not os.path.exists(target_path)) or (os.path.getsize(target_path) != os.path.getsize(pdf_path)):
+                shutil.copyfile(pdf_path, target_path)
+            return target_path
+    except Exception:
+        return None
+    return None
+
+
+@st.cache_data(show_spinner=False, max_entries=24)
+def render_pdf_slide_png(pdf_file_path, pdf_mtime, page_index, zoom):
+    """Render a single PDF slide into PNG bytes using PyMuPDF (cached per slide and zoom level)."""
+    if not HAS_FITZ:
+        raise RuntimeError("PyMuPDF (fitz) is not available.")
+    with fitz.open(pdf_file_path) as pdf_doc:
+        page = pdf_doc.load_page(page_index)
+        pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+        return pix.tobytes("png")
+
 
 def find_presentation_pdf():
     """Locate the presentation PDF file in the repository root."""
@@ -301,7 +333,7 @@ with st.sidebar:
         default_key = os.getenv("GEMINI_API_KEY")
 
     user_api_key = st.text_input(
-        "🔑 مفتا�� Google Gemini API:",
+        "🔑 مفتاح Google Gemini API:",
         type="password",
         value=default_key,
         help="يمكنك الحصول على المفتاح مجاناً من Google AI Studio (aistudio.google.com)",
@@ -452,7 +484,7 @@ with tab_coin:
 # =============================================================================
 with tab_pottery:
     st.header("🏺 استخراج مقاطع الفخار وأتمتة استمارات الحفر الطبقي")
-    st.write("دمج خوارزميات الرؤية الحاسوبية (Computer Vision) لاستخراج الحافة (Rim Profile) وتقدير القطر الهندسي، ثم توليد استمارة سي��ق طبقي رقمية (JSON) متوافقة مع مصفوفة هاريس.")
+    st.write("دمج خوارزميات الرؤية الحاسوبية (Computer Vision) لاستخراج الحافة (Rim Profile) وتقدير القطر الهندسي، ثم توليد استمارة سياق طبقي رقمية (JSON) متوافقة مع مصفوفة هاريس.")
 
     col_p1, col_p2 = st.columns([1, 1], gap="large")
 
@@ -521,7 +553,7 @@ with tab_pottery:
   "Estimated_Form": "شكل الإناء المقدر (جرة، صحن، قنينة)",
   "Typological_Dating": "الحقبة الزمنية التقديرية في الشارقة",
   "Stratigraphic_Relations": "العلاقة مع الطبقات الأعلى والأدنى",
-  "Field_Curator_Recommendation": "توصيات الترميم والمعالجة الحق��ية"
+  "Field_Curator_Recommendation": "توصيات الترميم والمعالجة الحقلية"
 }}
 """
                         try:
@@ -566,7 +598,7 @@ with tab_pottery:
 # =============================================================================
 with tab_satellite:
     st.header("🛰️ المحور الثالث: الاستشعار الفضائي عن بعد لقطاع مليحة الأثري (Sentinel-2 L2A)")
-    st.write("استدعاء وتحليل المشاهد الفضائية الحقيقية لقمر Sentinel-2 عبر بوابة Microsoft Planetary Computer STAC لموقع مليحة الأثري بالشارقة، ومعالجة مؤشر التباين الهيكلي للرطوبة والأساسات (ANDI)، واستخراج إحداثيات الشذوذ ال��غرافية مع إسقاطها على خريطة تفاعلية فضائية وتوليد التقرير الاستكشافي بالذكاء الاصطناعي.")
+    st.write("استدعاء وتحليل المشاهد الفضائية الحقيقية لقمر Sentinel-2 عبر بوابة Microsoft Planetary Computer STAC لموقع مليحة الأثري بالشارقة، ومعالجة مؤشر التباين الهيكلي للرطوبة والأساسات (ANDI)، واستخراج إحداثيات الشذوذ الجغرافية مع إسقاطها على خريطة تفاعلية فضائية وتوليد التقرير الاستكشافي بالذكاء الاصطناعي.")
 
     if not HAS_GEO:
         st.error("مكتبات الاستشعار عن بعد (rasterio, pystac_client, planetary_computer) غير مثبتة بالكامل في البيئة الحالية.")
@@ -732,7 +764,7 @@ with tab_satellite:
                         ])
                         prompt_sat_ai = f"""
 بصفتك مستشار الاستشعار عن بعد والآثار الفضائية بهيئة الشارقة للآثار:
-إليك مخرجات التحليل ��لطيفي الفضائي الحقيقي لبيانات قمر Sentinel-2 فوق موقع مليحة الأثري:
+إليك مخرجات التحليل الطيفي الفضائي الحقيقي لبيانات قمر Sentinel-2 فوق موقع مليحة الأثري:
 قائمة بأبرز نقاط الشذوذ الطيفي الحقيقية:
 {summary_anom}
 
@@ -777,7 +809,7 @@ with tab_structural:
         if struct_sample_options[chosen_struct_sample] and os.path.exists(struct_sample_options[chosen_struct_sample]):
             wall_img_process = Image.open(struct_sample_options[chosen_struct_sample]).convert("RGB")
         else:
-            up_wall = st.file_uploader("ارفع صورة الجدار الأ��ري المصاب بالشروخ:", type=["jpg", "jpeg", "png"], key="wall_file")
+            up_wall = st.file_uploader("ارفع صورة الجدار الأثري المصاب بالشروخ:", type=["jpg", "jpeg", "png"], key="wall_file")
             if up_wall:
                 wall_img_process = Image.open(up_wall).convert("RGB")
 
@@ -829,13 +861,13 @@ with tab_structural:
                 if client:
                     with st.spinner("جاري صياغة تقرير الحالة الإنشائية وتصنيف المخاطر..."):
                         prompt_wall = f"""
-بص��تك مهندس ترميم وصيانة المواقع الأثرية بهيئة الشارقة للآثار:
+بصفتك مهندس ترميم وصيانة المواقع الأثرية بهيئة الشارقة للآثار:
 حلل صورة الجدار المرفقة وخريطة الشروخ المستخرجة آلياً بنسبة تضرر سطحي {damage_pct}%:
 أعد تقرير تقييم حالة ومخاطر إنشائية (Structural Condition Assessment) بصيغة Markdown يتضمن:
 1. التشخيص المورفولوجي:
    - تحديد نوع الشروخ (شروخ إجهاد إنشائي، شروخ حرارية، أو تفتت ناجم عن الرطوبة والأملاح).
 2. تصنيف درجة الخطورة والاستجابة:
-   - [أخضر: مستقر] أو [أصفر: مراقبة فنائية مستمرة] أو [أحمر: تدخل هندسي عاجل].
+   - [أخضر: مستقر] أو [أصفر: مراقبة فنية مستمرة] أو [أحمر: تدخل هندسي عاجل].
 3. خطة التدخل الوقائي الموصى بها لفريق الترميم بالهيئة لحماية المنشأة من تفاقم الأضرار.
 """
                         try:
@@ -872,7 +904,7 @@ with tab_predicting:
     <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #d4a373; border-radius: 12px; padding: 18px; margin-bottom: 22px;">
         <h4 style="margin: 0 0 8px 0; color: #d4a373;">🏛️ عن مبادرة Predicting the Past (نماذج Ithaca و Aeneas)</h4>
         <p style="margin: 0; color: #cbd5e1; font-size: 0.95rem; line-height: 1.8;">
-            مبادرة علمية عا��مية طُورت بالتعاون بين <b>Google DeepMind</b> و<b>جامعة أكسفورد</b> وجامعة كا فوسكاري بالبندقية ونُشرت في مجلة <i>Nature</i>. تهدف النماذج التوليدية المتخصصة (<b>Ithaca</b> للنقوش اليونانية و<b>Aeneas</b> للنقوش اللاتينية) إلى مساعدة الباحثين والمؤرخين عبر ثلاثة مسارات رئيسية:
+            مبادرة علمية عالمية طُورت بالتعاون بين <b>Google DeepMind</b> و<b>جامعة أكسفورد</b> وجامعة كا فوسكاري بالبندقية ونُشرت في مجلة <i>Nature</i>. تهدف النماذج التوليدية المتخصصة (<b>Ithaca</b> للنقوش اليونانية و<b>Aeneas</b> للنقوش اللاتينية) إلى مساعدة الباحثين والمؤرخين عبر ثلاثة مسارات رئيسية:
             <br>1️⃣ <b>ترميم واستكمال النصوص المتآكلة (Text Restoration)</b> للأحرف والكلمات المفقودة [---] بدقة تفوق 71%.
             <br>2️⃣ <b>تحديد الموطن الجغرافي ونسب النقش (Geographical Attribution)</b> وتوزيع احتمالات مكان الكتابة أو دار السك بدقة 84%.
             <br>3️⃣ <b>التأريخ الزمني الدقيق (Chronological Dating)</b> وتحديد العقود والحقب الزمنية المرجحة في نطاق 30 عاماً.
@@ -905,7 +937,7 @@ with tab_predicting:
             inscription_presets = {
                 "درهم موقع المدام بالشارقة (تآكل اسم دار السك)": {
                     "text": "بسم الله ضرب هذا الدرهم بـ [---] سنة سبعين ومائة",
-                    "script": "كوفي مبكر (مسكوكات إسلامية - ��لشارقة)",
+                    "script": "كوفي مبكر (مسكوكات إسلامية - الشارقة)",
                     "target": "استكمال دار السك المفقودة وتأريخها ونسبها الجغرافي"
                 },
                 "نقيشة شاهد قبر مسند صخرية من مليحة": {
@@ -964,7 +996,7 @@ with tab_predicting:
         else:
             st.markdown("**رفع أو اختيار صورة النقيشة أو المسكوكة:**")
             ithaca_img_choice = st.selectbox(
-                "اختر عينة مسكوكة/ن��يشة من الأرشيف أو ارفع ملفك:",
+                "اختر عينة مسكوكة/نقيشة من الأرشيف أو ارفع ملفك:",
                 [
                     "درهم إسلامي بنقوش هامشية متآكلة (dfdff.png)",
                     "مسكوكة برونزية أثرية قديمة (47-91.png)",
@@ -982,7 +1014,7 @@ with tab_predicting:
                 ithaca_image = Image.open("images/17-gr9.jpg").convert("RGB")
                 st.image(ithaca_image, caption="لقية أثرية مسكوكة (17-gr9.jpg)", use_container_width=True)
             else:
-                up_ithaca = st.file_uploader("ارفع صورة النقيشة الم��آكلة (JPG, PNG):", type=["jpg", "jpeg", "png"], key="ithaca_img_up")
+                up_ithaca = st.file_uploader("ارفع صورة النقيشة المتآكلة (JPG, PNG):", type=["jpg", "jpeg", "png"], key="ithaca_img_up")
                 if up_ithaca:
                     ithaca_image = Image.open(up_ithaca).convert("RGB")
                     st.image(ithaca_image, caption="الصورة المرفوعة", use_container_width=True)
@@ -1056,7 +1088,7 @@ with tab_predicting:
                 key="btn_dl_ithaca_report"
             )
         else:
-            st.info("اخت�� العينة النقشية واضغط على زر تشغيل النموذج لاستعراض مقترحات الاستعادة وتوزيع الاحتمالات الجغرافية والزمنية.")
+            st.info("اختر العينة النقشية واضغط على زر تشغيل النموذج لاستعراض مقترحات الاستعادة وتوزيع الاحتمالات الجغرافية والزمنية.")
 
 # =============================================================================
 # TAB 6: العرض التقديمي الكامل (PDF) ودليل الورشة
@@ -1074,7 +1106,7 @@ with tab_presentation:
         **المحاور العلمية المشمولة في العرض:**
         - **المحور 1:** الذكاء الاصطناعي في علم الآثار، التحول من الأرشفة الساكنة إلى الفهرسة الدلالية الفورية للمسكوكات.
         - **المحور 2:** التوثيق الميداني بالرؤية الحاسوبية واستخراج مقاطع الفخار ونمذجة مصفوفة هاريس الطبقية.
-        - **المحور 3:** الاستشعار عن بعد ومؤشرات التباين الطيفي (ANDI) لرصد الشواهد و��لأساسات المدفونة في مليحة.
+        - **المحور 3:** الاستشعار عن بعد ومؤشرات التباين الطيفي (ANDI) لرصد الشواهد والأساسات المدفونة في مليحة.
         - **المحور 4:** الرصد الإنشائي للشروخ وتقارير الصيانة الوقائية وإدارة المخاطر وفق بروتوكول EAMENA الدولي.
         """)
 
@@ -1166,7 +1198,7 @@ with tab_presentation:
                 "s2_right_head": "رذاذ غاوس (3D Gaussian Splatting)",
                 "s2_right_body": "• طفرة النمذجة: تمثيل المشهد كاملاً بسرعة معالجة فورية.\n• تصفح تفاعلي سلس للمواقع والمربعات بمعدل 60 إطاراً في الثانية.\n• العمل مباشرة من الهاتف والدرون دون الحاجة لأجهزة عملاقة.",
                 "s3_steps": [
-                    ("المسح بالهاتف (LiDAR)", "استخدام Polycam لمسح المر��ع الأثري أو اللقية"),
+                    ("المسح بالهاتف (LiDAR)", "استخدام Polycam لمسح المربع الأثري أو اللقية"),
                     ("التسجيل الصوتي الحقلي", "تحويل إملاء الباحث الأثري الميداني إلى سجل حفر رقمي"),
                     ("مقاطع الفخار الآلية", "استخراج Rim Profiles تلقائياً دون رسم يدوي مجهد"),
                     ("المزامنة مع QGIS", "ربط السحابة النقطية والتوأم الرقمي بقواعد بيانات الهيئة")
@@ -1177,7 +1209,7 @@ with tab_presentation:
                     ("1mm", "دقة قياس الأبعاد الواقعية عبر مستشعرات الليدار المحمولة"),
                     ("100%", "حفظ رقمي دائم للسياق الطبقي للموقع قبل إزالة الطبقات")
                 ],
-                "notes": "التأكيد على أن الحفرية الأثرية بطبيعتها عملية تدميرية متحكم بها؛ ما يُحفر لا يمكن إعادته، لذا فإن التوأم الرقمي يحفظ الموقع ��لأبد."
+                "notes": "التأكيد على أن الحفرية الأثرية بطبيعتها عملية تدميرية متحكم بها؛ ما يُحفر لا يمكن إعادته، لذا فإن التوأم الرقمي يحفظ الموقع للأبد."
             },
             {
                 "id": "3",
@@ -1199,7 +1231,7 @@ with tab_presentation:
                 "s4_kpis": [
                     ("1 - 3m", "عمق اختراق موجات رادار SAR للرمال الصحراوية الجافة بالشارقة"),
                     ("1000s", "كيلومترات مربعة تُفحص وتُحلل آلياً عبر الذكاء الاصطناعي في دقائق"),
-                    ("92%", "دقة النماذج التنبؤية في تمييز مدافن العصر البرونز�� وقنوات الأفلاج"),
+                    ("92%", "دقة النماذج التنبؤية في تمييز مدافن العصر البرونزي وقنوات الأفلاج"),
                     ("Zero", "حفريات عشوائية؛ توجيه فرق المسح مباشرة لنقاط مؤكدة بنسب احتمالية")
                 ],
                 "notes": "استعراض كود Colab التفاعلي وشرح كيف تبرز الأساسات الأثرية في خريطة التباين الطيفي بالألوان الفسفورية."
@@ -1212,7 +1244,7 @@ with tab_presentation:
                 "badge": "المحور الرابع: الصيانة التنبؤية وإدارة المخاطر",
                 "s2_title": "المراقبة رباعية الأبعاد (4D Time-Lapse) وحماية التراث",
                 "s2_left_head": "الترميم العلاجي الكلاسيكي (رد الفعل)",
-                "s2_left_body": "• التدخل فقط بعد حدوث التصدع الكبير أو انهيار جزء من الجدار.\n• تكاليف مالية باهظة وصعوبة بالغة في استعادة الحالة الأصلية.\n• غ��اب القياس الدقيق لمعدلات التآكل البطيئة الناتجة عن الرياح والأمطار.",
+                "s2_left_body": "• التدخل فقط بعد حدوث التصدع الكبير أو انهيار جزء من الجدار.\n• تكاليف مالية باهظة وصعوبة بالغة في استعادة الحالة الأصلية.\n• غياب القياس الدقيق لمعدلات التآكل البطيئة الناتجة عن الرياح والأمطار.",
                 "s2_right_head": "الصيانة التنبؤية الذكية (الاستباق)",
                 "s2_right_body": "• مقارنة السحب النقطية (خوارزمية M3C2) لرصد الإزاحات المليمترية مبكراً.\n• التعرف الآلي على الشروخ ومعدل اتساعها عبر الرؤية الحاسوبية.\n• الكشف المبكر عن مرض البرونز والصدأ بالقطع المعدنية في المستودعات.",
                 "s3_steps": [
@@ -1461,27 +1493,83 @@ with tab_presentation:
         st.info("مكتبة python-pptx متوفرة في requirements.txt وسيتم تفعيل توليد شرائح PPTX تلقائياً على Streamlit Cloud.")
 
     st.markdown("---")
-    st.subheader("📑 مستعرض شرائح العرض التقديمي (PDF Viewer)")
+    st.subheader("📽️ مستعرض شرائح العرض التقديمي التفاعلي (Presentation Slide Viewer)")
+    st.caption("تنقّل بين شرائح العرض داخل المنصة شريحة بشريحة، أو افتح الملف بملء الشاشة في تبويب مستقل.")
 
     if pdf_path and os.path.exists(pdf_path):
-        try:
-            with open(pdf_path, "rb") as f_pdf:
-                b64_pdf = base64.b64encode(f_pdf.read()).decode("utf-8")
-            
-            pdf_embed_code = f"""
-            <div style="border-radius: 12px; overflow: hidden; border: 2px solid rgba(212, 163, 115, 0.4); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);">
-                <iframe 
-                    src="data:application/pdf;base64,{b64_pdf}#toolbar=1&navpanes=1&scrollbar=1" 
-                    width="100%" 
-                    height="850px" 
-                    type="application/pdf"
-                    style="border: none;"
-                >
-                </iframe>
-            </div>
-            """
-            st.markdown(pdf_embed_code, unsafe_allow_html=True)
-        except Exception as e:
-            st.error(f"خطأ أثناء تجهيز مستعرض الـ PDF: {e}")
+        static_pdf_path = ensure_presentation_static_copy(pdf_path)
+
+        col_viewer, col_viewer_actions = st.columns([3, 1], gap="medium")
+
+        with col_viewer_actions:
+            if static_pdf_path:
+                st.markdown(
+                    '<a href="app/static/presentation_workshop.pdf" target="_blank" rel="noopener noreferrer" '
+                    'style="display:block;text-align:center;padding:14px 10px;border-radius:10px;'
+                    'background:linear-gradient(135deg,#d4a373 0%,#b23a22 100%);color:#ffffff !important;'
+                    'font-weight:800;text-decoration:none;line-height:1.7;">'
+                    '🔗 فتح العرض بملء الشاشة<br><span style="font-size:0.8rem;">(تبويب مستقل — Full Screen PDF)</span></a>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.info("لعرض الملف في تبويب مستقل، أضف `enableStaticServing = true` في `.streamlit/config.toml`.")
+
+            st.caption("💡 يمكنك أيضاً تنزيل ملف الـ PDF أو العرض التفاعلي (HTML) من الأزرار أعلاه.")
+
+        with col_viewer:
+            if HAS_FITZ:
+                try:
+                    pdf_mtime = os.path.getmtime(pdf_path)
+                    with fitz.open(pdf_path) as _pdf_doc:
+                        total_slides = _pdf_doc.page_count
+
+                    if "pres_page_num" not in st.session_state:
+                        st.session_state["pres_page_num"] = 1
+                    if st.session_state["pres_page_num"] > total_slides:
+                        st.session_state["pres_page_num"] = total_slides
+
+                    def _pres_move(delta):
+                        st.session_state["pres_page_num"] = min(max(1, st.session_state["pres_page_num"] + delta), total_slides)
+
+                    ctrl_prev, ctrl_page, ctrl_next, ctrl_zoom = st.columns([1, 1.1, 1, 1.6])
+                    with ctrl_prev:
+                        st.button("⬅️ الشريحة السابقة", key="btn_pres_prev", on_click=_pres_move, args=(-1,))
+                    with ctrl_page:
+                        st.number_input("رقم الشريحة:", min_value=1, max_value=total_slides, step=1, key="pres_page_num")
+                    with ctrl_next:
+                        st.button("الشريحة التالية ➡️", key="btn_pres_next", on_click=_pres_move, args=(1,))
+                    with ctrl_zoom:
+                        pres_zoom = st.select_slider("مستوى التكبير والوضوح:", options=[1.0, 1.4, 1.8, 2.4, 3.0], value=1.8, key="pres_zoom")
+
+                    current_slide_idx = int(st.session_state["pres_page_num"]) - 1
+                    slide_png_bytes = render_pdf_slide_png(pdf_path, pdf_mtime, current_slide_idx, pres_zoom)
+
+                    st.markdown(
+                        f'<div style="text-align:center;font-weight:800;color:#d4a373;margin:8px 0;">'
+                        f'الشريحة {current_slide_idx + 1} من {total_slides}</div>',
+                        unsafe_allow_html=True
+                    )
+                    st.image(slide_png_bytes, use_container_width=True)
+                    st.download_button(
+                        label="🖼️ تنزيل الشريحة الحالية كصورة عالية الدقة (PNG)",
+                        data=slide_png_bytes,
+                        file_name=f"workshop_slide_{current_slide_idx + 1:02d}.png",
+                        mime="image/png",
+                        key="btn_dl_current_slide"
+                    )
+                except Exception as e:
+                    st.error(f"خطأ أثناء تجهيز مستعرض الشرائح: {e}")
+            else:
+                st.warning("المستعرض التفاعلي يحتاج مكتبة `pymupdf` (مضافة إلى requirements.txt) وسيتم تفعيلها تلقائياً بعد إعادة البناء.")
+                try:
+                    with open(pdf_path, "rb") as f_pdf:
+                        b64_pdf = base64.b64encode(f_pdf.read()).decode("utf-8")
+                    st.markdown(
+                        f'<iframe src="data:application/pdf;base64,{b64_pdf}#toolbar=1&navpanes=1&scrollbar=1" '
+                        f'width="100%" height="850px" type="application/pdf" style="border:none;"></iframe>',
+                        unsafe_allow_html=True
+                    )
+                except Exception as e:
+                    st.error(f"خطأ أثناء تجهيز مستعرض الـ PDF: {e}")
     else:
         st.info("قم برفع ملف العرض التقديمي PDF إلى المجلد الرئيسي للاستعراض التفاعلي.")
