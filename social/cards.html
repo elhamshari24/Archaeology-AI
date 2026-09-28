@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>AI × Archaeology — Social Cards</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* ------------------------------------------------------------------
+   استوديو بطاقات التواصل — ورشة «الذكاء الاصطناعي في توثيق المواقع
+   والقطع الأثرية» — هيئة الشارقة للآثار 2026
+   أربعة اتجاهات بصرية مختلفة، كلّها 1080×1080.
+   ------------------------------------------------------------------ */
+
+:root{
+  --ink:#0A101E;
+  --ink-2:#0E1626;
+  --panel:#111C31;
+  --gold:#D4A373;
+  --gold-hi:#F0D6B2;
+  --gold-dim:rgba(212,163,115,.38);
+  --terra:#B23A22;
+  --cyan:#4BD8E8;
+  --bone:#F7F2E8;
+  --muted:#93A6BF;
+  --display:"Amiri","Noto Naskh Arabic",serif;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#05080f;
+  font-family:var(--sans);
+  display:flex;flex-direction:column;gap:56px;
+  padding:56px;align-items:center;
+}
+.card{
+  position:relative;width:1080px;height:1080px;overflow:hidden;
+  background:var(--ink);color:var(--bone);
+  direction:rtl;flex:none;
+}
+.card .pad{position:absolute;inset:74px;}
+
+/* shared micro-elements ------------------------------------------------ */
+.rule{height:1px;background:var(--gold-dim);border:0}
+.kicker{
+  font-size:23px;font-weight:300;letter-spacing:.02em;color:var(--gold);
+  display:flex;align-items:center;gap:16px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:var(--gold-dim)}
+.lockup{
+  display:flex;align-items:center;gap:14px;
+  font-size:21px;color:var(--muted);font-weight:300;
+}
+.lockup b{color:var(--bone);font-weight:600;font-size:22px}
+.lockup .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex:none}
+.h-display{font-family:var(--display);font-weight:700;line-height:1.22}
+.mono-num{font-variant-numeric:tabular-nums}
+.grain{ /* fine film grain, keeps flat gradients from banding */
+  position:absolute;inset:0;pointer-events:none;opacity:.16;mix-blend-mode:overlay;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 3px),
+                   repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px);
+}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 40%,transparent 45%,rgba(4,7,14,.72) 100%);}
+
+/* =====================================================================
+   1 — السرد الكتابي: استعادة النقوش   (صورة + علامات الاستكمال)
+   ===================================================================== */
+#card-1 .photo{position:absolute;inset:0}
+#card-1 .photo img{
+  width:100%;height:100%;object-fit:cover;object-position:50% 42%;
+  filter:grayscale(1) brightness(.58) contrast(1.14);
+}
+#card-1 .tint-mult{position:absolute;inset:0;mix-blend-mode:multiply;
+  background:linear-gradient(180deg,rgba(10,16,30,.64) 0%,rgba(10,16,30,.5) 38%,rgba(8,13,25,.94) 100%);}
+#card-1 .tint-gold{position:absolute;inset:0;mix-blend-mode:soft-light;
+  background:linear-gradient(200deg,rgba(212,163,115,.5),rgba(10,16,30,0) 58%);}
+#card-1 .pad{display:flex;flex-direction:column}
+#card-1 h1{
+  margin-top:118px;font-size:104px;text-wrap:balance;
+  text-shadow:0 2px 26px rgba(6,10,20,.75);
+}
+#card-1 .lede{
+  margin-top:26px;max-width:660px;font-size:27px;line-height:1.85;font-weight:300;
+  color:#DCE4EF;text-shadow:0 1px 14px rgba(6,10,20,.8);
+}
+/* specimen strip */
+#card-1 .specimen{
+  margin-top:auto;border:1px solid var(--gold-dim);
+  background:linear-gradient(180deg,rgba(12,19,34,.86),rgba(10,15,27,.94));
+  backdrop-filter:blur(2px);padding:34px 38px 30px;
+}
+#card-1 .specimen .cap{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:20px;color:var(--muted);font-weight:300;margin-bottom:20px;
+}
+#card-1 .specimen .cap .tag{
+  color:var(--gold);border:1px solid var(--gold-dim);padding:5px 14px;font-size:19px;
+}
+#card-1 .line-frag,#card-1 .line-rest{
+  font-family:var(--display);font-size:42px;line-height:1.7;white-space:nowrap;
+}
+#card-1 .line-frag{color:#7E8DA5}
+#card-1 .line-rest{color:var(--gold-hi);margin-top:10px}
+#card-1 .gap{color:#5C6A80}
+#card-1 .rest{border-bottom:1px solid var(--gold);unicode-bidi:isolate}
+#card-1 .foot{display:flex;justify-content:space-between;align-items:center;margin-top:34px}
+
+/* =====================================================================
+   2 — السجل المتحفي: من الصورة إلى البيانات   (نصف لوح محفوظ + سجل)
+   ===================================================================== */
+#card-2{background:
+  radial-gradient(90% 70% at 12% 8%,rgba(178,58,34,.16),transparent 60%),
+  linear-gradient(180deg,var(--ink-2),var(--ink) 70%);}
+#card-2 .split{position:absolute;inset:0;display:flex}
+#card-2 .plate-side{
+  width:452px;flex:none;background:#EFE9DE;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 24px 60px rgba(4,7,14,.55);
+}
+#card-2 .plate-side img{width:100%;height:100%;object-fit:cover}
+#card-2 .plate-side .scale-cap{
+  position:absolute;bottom:22px;right:0;left:0;text-align:center;
+  font-size:19px;color:#5C5648;letter-spacing:.01em;
+}
+#card-2 .copy{flex:1;position:relative;padding:74px 64px 66px 74px;
+  display:flex;flex-direction:column;}
+#card-2 h1{margin-top:74px;font-size:76px;line-height:1.28}
+#card-2 .sub{margin-top:20px;font-size:25px;font-weight:300;color:#CDD8E6;line-height:1.8;max-width:470px}
+#card-2 .record{margin-top:40px;border-top:1px solid var(--gold-dim)}
+#card-2 .row{
+  display:flex;justify-content:space-between;align-items:baseline;gap:18px;
+  padding:19px 2px;border-bottom:1px solid rgba(212,163,115,.2);
+}
+#card-2 .row .k{font-size:23px;font-weight:300;color:var(--muted)}
+#card-2 .row .v{font-size:28px;font-weight:600;color:var(--bone)}
+#card-2 .row .v em{font-style:normal;color:var(--gold);font-weight:600}
+#card-2 .row .v small{display:block;font-size:18px;font-weight:300;color:#7E8DA5;margin-top:3px;text-align:left}
+#card-2 .card-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
+#card-2 .chip{
+  font-size:20px;color:var(--gold);border:1px solid var(--gold-dim);
+  padding:7px 16px;border-radius:999px;
+}
+
+/* =====================================================================
+   3 — التوأم الرقمي للموقع   (صورة + طبقة مسح سماوية)
+   ===================================================================== */
+#card-3{background:linear-gradient(160deg,#0B1424,#0A101E 60%);}
+#card-3 .frame{position:absolute;top:0;left:0;width:560px;height:1080px;overflow:hidden}
+#card-3 .frame img{width:100%;height:100%;object-fit:cover;object-position:62% 40%;
+  filter:saturate(.82) contrast(1.05) brightness(.94);}
+#card-3 .frame::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(10,16,30,.94) 0%,rgba(10,16,30,.28) 34%,rgba(10,16,30,.05) 60%);}
+/* scan layer */
+#card-3 .scan{position:absolute;top:120px;left:96px;width:372px;height:640px;pointer-events:none}
+#card-3 .scan svg{width:100%;height:100%;overflow:visible}
+#card-3 .scan .brk{stroke:var(--cyan);stroke-width:2;fill:none;opacity:.9}
+#card-3 .scan .ln{stroke:var(--cyan);stroke-width:1;opacity:.28}
+#card-3 .scan .pt{fill:var(--cyan);opacity:.85}
+#card-3 .scan .lab{
+  position:absolute;font-size:19px;color:var(--cyan);letter-spacing:.02em;
+  background:rgba(10,16,30,.72);border:1px solid rgba(75,216,232,.4);padding:5px 12px;
+}
+#card-3 .copy{position:absolute;right:74px;top:74px;width:394px;bottom:74px;display:flex;flex-direction:column}
+#card-3 h1{margin-top:96px;font-size:78px;line-height:1.3}
+#card-3 .lede{margin-top:24px;font-size:25px;line-height:1.9;font-weight:300;color:#CDD8E6}
+#card-3 .inset{margin-top:auto;border:1px solid var(--gold-dim);background:#0C1424;padding:12px}
+#card-3 .inset img{width:100%;height:186px;object-fit:cover;display:block;filter:contrast(1.02)}
+#card-3 .inset .cap{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:19px;font-weight:300;color:var(--muted);padding:12px 4px 2px;
+}
+#card-3 .inset .cap b{color:var(--gold);font-weight:600}
+#card-3 .foot{margin-top:26px}
+
+/* =====================================================================
+   4 — البيان المؤسسي   (أثر ذهبي + كنترات صحراوية + عنوان كبير)
+   ===================================================================== */
+#card-4{background:
+  radial-gradient(70% 55% at 50% 44%,rgba(212,163,115,.14),transparent 68%),
+  linear-gradient(180deg,#0C1424,var(--ink) 58%,#080D18);}
+#card-4 .contours{position:absolute;inset:0;opacity:.5}
+#card-4 .artifact{
+  position:absolute;top:118px;left:50%;transform:translateX(-50%);
+  width:760px;opacity:.34;mix-blend-mode:screen;pointer-events:none;
+  -webkit-mask-image:radial-gradient(70% 70% at 50% 45%,#000 45%,transparent 78%);
+          mask-image:radial-gradient(70% 70% at 50% 45%,#000 45%,transparent 78%);
+}
+#card-4 .pad{display:flex;flex-direction:column;align-items:center;text-align:center}
+#card-4 .top-kicker{font-size:23px;font-weight:300;color:var(--gold);letter-spacing:.02em}
+#card-4 h1{
+  margin-top:196px;font-size:96px;line-height:1.3;text-wrap:balance;
+  text-shadow:0 3px 30px rgba(5,9,18,.7);max-width:880px;
+}
+#card-4 .title-rule{width:132px;height:1px;background:var(--gold);margin-top:34px;opacity:.85}
+#card-4 .alt{font-family:var(--display);margin-top:26px;font-size:31px;color:#C9B898}
+#card-4 .pillars{
+  margin-top:auto;width:100%;display:flex;justify-content:center;
+  border-top:1px solid var(--gold-dim);border-bottom:1px solid var(--gold-dim);
+  padding:26px 0;
+}
+#card-4 .pillars span{
+  flex:1;font-size:22px;font-weight:300;color:#D8E0EB;position:relative;
+}
+#card-4 .pillars span + span::before{
+  content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:1px;height:26px;background:var(--gold-dim);
+}
+#card-4 .foot{margin-top:34px;width:100%;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     بطاقة 1 — استعادة النقوش
+     ================================================================ -->
+<section class="card" id="card-1">
+  <div class="photo"><img src="assets/inscription.jpg" alt=""></div>
+  <div class="tint-mult"></div>
+  <div class="tint-gold"></div>
+  <div class="vignette"></div>
+  <div class="pad">
+    <div class="kicker">ورشة عمل تخصصية <span dir="ltr" class="mono-num">2026</span></div>
+
+    <h1 class="h-display">نقرأ ما تآكل من الكتابة</h1>
+    <p class="lede">نموذج لغوي يعيد بناء الأحرف المفقودة من النقوش، ويرجّح موطن الكتابة وحقبتها الزمنية — ليبقى النص شاهدًا يُقرأ لا حجرًا يُخمَّن.</p>
+
+    <div class="specimen">
+      <div class="cap">
+        <span class="tag">استعادة النص · Ithaca</span>
+        <span>ثقة النموذج <span dir="ltr" class="mono-num">78%</span> — أربع كلمات مستكملة</span>
+      </div>
+      <div class="line-frag">
+        نفس وقبر <span class="gap">[<span dir="ltr">---</span>]</span> بن كاهل <span class="gap">[<span dir="ltr">---</span>]</span> ذو تيم
+      </div>
+      <div class="line-rest">
+        نفس وقبر <span class="rest">[زيد]</span> بن كاهل <span class="rest">[بن]</span> ذو تيم
+      </div>
+    </div>
+
+    <div class="foot">
+      <div class="lockup"><span class="dot"></span><b>هيئة الشارقة للآثار</b><span>·</span><span>مليحة</span></div>
+      <div class="lockup">الشارقة، الإمارات العربية المتحدة</div>
+    </div>
+  </div>
+  <div class="grain"></div>
+</section>
+
+<!-- ================================================================
+     بطاقة 2 — السجل المتحفي
+     ================================================================ -->
+<section class="card" id="card-2">
+  <div class="split">
+    <div class="plate-side">
+      <img src="assets/dirham-scale.jpg" alt="">
+      <div class="scale-cap">قياس مُدرَّج — دقة أعشار الملّيمتر</div>
+    </div>
+    <div class="copy">
+      <div class="kicker">التوثيق والفهرسة الرقمية</div>
+
+      <h1 class="h-display">من الصورة إلى السجل المتحفي</h1>
+      <p class="sub">تُوصَف القطعة آليًا وتُقاس وتُفهرس، فيصل الباحث إلى سجله الكامل قبل أن يفتح صندوق الحفظ.</p>
+
+      <div class="record">
+        <div class="row"><span class="k">المادة</span><span class="v">فضة</span></div>
+        <div class="row"><span class="k">القطر المقيس</span><span class="v"><span dir="ltr" class="mono-num">26.4</span> مم<small>قياس آلي من الصورة</small></span></div>
+        <div class="row"><span class="k">دار السك</span><span class="v"><em>دمشق</em><small>ترجيح جغرافي — قيد المراجعة</small></span></div>
+        <div class="row"><span class="k">الحقبة</span><span class="v">أموي · <span dir="ltr" class="mono-num">77</span> هـ<small>تأريخ زمني تقديري</small></span></div>
+      </div>
+
+      <div class="card-foot">
+        <div class="chip">فهرسة آلية للسجلات المتحفية</div>
+        <div class="lockup"><span class="dot"></span><b>هيئة الشارقة للآثار</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+</section>
+
+<!-- ================================================================
+     بطاقة 3 — التوأم الرقمي
+     ================================================================ -->
+<section class="card" id="card-3">
+  <div class="frame"><img src="assets/fort-tower.jpg" alt=""></div>
+
+  <div class="scan">
+    <svg viewBox="0 0 372 640" fill="none">
+      <path class="brk" d="M2 64 V2 H74"/>
+      <path class="brk" d="M298 2 H370 V64"/>
+      <path class="brk" d="M370 576 V638 H298"/>
+      <path class="brk" d="M74 638 H2 V576"/>
+      <path class="ln" d="M2 160 H370 M2 236 H370 M2 300 H370 M2 372 H370 M2 448 H370 M2 520 H370"/>
+      <circle class="pt" cx="96" cy="214" r="3.5"/>
+      <circle class="pt" cx="212" cy="180" r="3.5"/>
+      <circle class="pt" cx="288" cy="268" r="3.5"/>
+      <circle class="pt" cx="168" cy="330" r="3.5"/>
+      <circle class="pt" cx="132" cy="412" r="3.5"/>
+      <circle class="pt" cx="252" cy="486" r="3.5"/>
+      <path class="ln" d="M96 214 L168 330 M212 180 L288 268 M132 412 L252 486" style="opacity:.18"/>
+    </svg>
+    <div class="lab" style="top:-14px;left:96px">مربع التنقيب <span dir="ltr">A7</span></div>
+    <div class="lab" style="bottom:-16px;left:40px">مسح ليزري — دقة <span dir="ltr">1</span> مم</div>
+  </div>
+
+  <div class="copy">
+    <div class="kicker">التوثيق الميداني</div>
+
+    <h1 class="h-display">نحفظ الموقع كما هو اليوم</h1>
+    <p class="lede">مسح ثلاثي الأبعاد يحوّل الموقع إلى توأم رقمي يبقى بعد أن يغيّره الزمن، وتقارنه السنوات ببعضها على مستوى الملّيمتر.</p>
+
+    <div class="inset">
+      <img src="assets/photogrammetry.jpg" alt="">
+      <div class="cap"><span>سحابة نقطية · <b><span dir="ltr" class="mono-num">4.2M</span> نقطة</b></span><span>نموذج أولي</span></div>
+    </div>
+
+    <div class="foot">
+      <div class="lockup"><span class="dot"></span><b>هيئة الشارقة للآثار</b><span>·</span><span>الذيد</span></div>
+    </div>
+  </div>
+  <div class="grain"></div>
+</section>
+
+<!-- ================================================================
+     بطاقة 4 — البيان المؤسسي
+     ================================================================ -->
+<section class="card" id="card-4">
+  <svg class="contours" viewBox="0 0 1080 1080" fill="none" stroke="#D4A373" stroke-width="1" opacity="0.12">
+    <path d="M-60 815 C 180 760, 340 860, 530 806 S 900 700, 1160 760"/>
+    <path d="M-60 855 C 200 800, 350 900, 545 848 S 910 742, 1160 800"/>
+    <path d="M-60 895 C 220 842, 360 940, 560 890 S 920 786, 1160 840"/>
+    <path d="M-60 935 C 240 884, 370 980, 575 932 S 930 830, 1160 880"/>
+    <path d="M-60 975 C 260 926, 380 1020, 590 974 S 940 874, 1160 920"/>
+    <ellipse cx="812" cy="196" rx="132" ry="88"/>
+    <ellipse cx="812" cy="196" rx="96" ry="60"/>
+    <ellipse cx="812" cy="196" rx="58" ry="34"/>
+    <ellipse cx="206" cy="322" rx="104" ry="72"/>
+    <ellipse cx="206" cy="322" rx="68" ry="44"/>
+  </svg>
+  <img class="artifact" src="assets/artifact-gold.jpg" alt="">
+
+  <div class="pad">
+    <div class="top-kicker">ورشة عمل تخصصية — <span dir="ltr" class="mono-num">2026</span></div>
+
+    <h1 class="h-display">الذكاء الاصطناعي في توثيق المواقع والقطع الأثرية</h1>
+    <div class="title-rule"></div>
+    <div class="alt">عشر جلسات تطبيقية · من الحفرة إلى البيانات</div>
+
+    <div class="pillars">
+      <span>فك النقوش والمسكوكات</span>
+      <span>التوثيق ثلاثي الأبعاد</span>
+      <span>الاستشعار الفضائي</span>
+      <span>الرصد الوقائي للمواقع</span>
+    </div>
+
+    <div class="foot">
+      <div class="lockup"><span class="dot"></span><b>هيئة الشارقة للآثار</b><span>·</span><span>الشارقة</span></div>
+      <div class="lockup">بالتعاون مع فرق التنقيب الميدانية</div>
+    </div>
+  </div>
+  <div class="grain"></div>
+</section>
+
+</body>
+</html>
