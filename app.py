@@ -35,6 +35,16 @@ try:
 except ImportError:
     HAS_GENAI = False
 
+try:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+    from pptx.enum.shapes import MSO_SHAPE
+    HAS_PPTX = True
+except ImportError:
+    HAS_PPTX = False
+
 # Load local environment variables if available
 load_dotenv()
 
@@ -547,7 +557,7 @@ with tab_pottery:
             st.info("قم برفع صورة كسرة فخار واضغط على زر التوليد لإنتاج الاستمارة الميدانية.")
 
 # =============================================================================
-# TAB 3: الاستشعار عن بعد وكشف الشذوذ (3.ipynb & Untitled1.ipynb)
+# TAB 3: الاستشعار عن بعد وكشف الشذوذ (3.ipynb & Predicting the Past.ipynb)
 # =============================================================================
 with tab_satellite:
     st.header("🛰️ الاستشعار عن بعد وكشف الشذوذ الأثري الصحراوي")
@@ -555,16 +565,16 @@ with tab_satellite:
 
     sub_mode = st.radio(
         "اختر نمط التشغيل:",
-        ["محاكاة طيفية تفاعلية فورية (Interactive Simulation)", "استعلام حي من قمر Sentinel-2 الحقيقي (Planetary Computer STAC)"],
+        ["محاكاة طيفية تفاعلية فورية (Interactive Simulation - Predicting the Past)", "استعلام حي من قمر Sentinel-2 الحقيقي (Planetary Computer STAC)"],
         horizontal=True
     )
 
     # -------------------------------------------------------------
-    # نمط 1: المحاكاة الطيفية التفاعلية الفورية (Untitled1.ipynb)
+    # نمط 1: المحاكاة الطيفية التفاعلية الفورية (Predicting the Past.ipynb)
     # -------------------------------------------------------------
     if sub_mode.startswith("محاكاة"):
-        st.subheader("🎮 محاكاة تفاعلية: كشف الأساسات والمدافن والأفلاج القديمة")
-        st.caption("نمذجة بيئة صحراوية رملية مع شواهد مدفونة (أساسات سور مستطيل، مدافن ركامية Tumuli، وقناة فلج قديم)")
+        st.subheader("🎮 محاكاة تفاعلية: كشف الأساسات والمدافن والأفلاج القديمة (Predicting the Past)")
+        st.caption("نمذجة بيئة صحراوية رملية ثلاثية المعالم: أساسات سور مستطيل، مدافن ركامية (Tumuli)، ومسار فلج قديم وفق خوارزمية دفتر Predicting the Past.")
 
         col_sim_ctrl, col_sim_view = st.columns([1, 2], gap="large")
 
@@ -992,6 +1002,359 @@ with tab_presentation:
                 file_name="presentation.html",
                 mime="text/html"
             )
+
+        if os.path.exists("colab/Predicting the Past.ipynb"):
+            with open("colab/Predicting the Past.ipynb", "rb") as f_nb:
+                nb_bytes = f_nb.read()
+            st.download_button(
+                label="📓 تنزيل دفتر (Predicting the Past.ipynb)",
+                data=nb_bytes,
+                file_name="Predicting_the_Past.ipynb",
+                mime="application/x-ipynb+json"
+            )
+
+    # -------------------------------------------------------------------------
+    # PowerPoint PPTX Presentation Builder (from Predicting the Past.ipynb)
+    # -------------------------------------------------------------------------
+    st.markdown("---")
+    st.subheader("📊 مولّد حزم العروض التقديمية الرسمية (PowerPoint .pptx)")
+    st.caption("ميزة مستوحاة ومطابقة لكود دفتر `Predicting the Past.ipynb` لإنشاء عروض تقديمية سيادية مصممة خصيصاً لهيئة الشارقة للآثار.")
+
+    if HAS_PPTX:
+        COLOR_TERRACOTTA = RGBColor(178, 58, 34)
+        COLOR_SAND_GOLD = RGBColor(212, 163, 115)
+        COLOR_CYAN = RGBColor(6, 182, 212)
+        COLOR_EMERALD = RGBColor(16, 185, 129)
+
+        pptx_modules = [
+            {
+                "id": "1",
+                "title": "مقدمة في الذكاء الاصطناعي وتطبيقاته الأثرية",
+                "filename": "العرض_1_مقدمة_الذكاء_الاصطناعي_الآثار.pptx",
+                "accent": COLOR_TERRACOTTA,
+                "badge": "المحور الأول: المفاهيم والتأسيس الأكاديمي",
+                "s2_title": "التحول من الأرشفة الساكنة إلى التحليل الدلالي",
+                "s2_left_head": "الرقمنة الساكنة التقليدية",
+                "s2_left_body": "• جداول Excel وقواعد بيانات معزولة وغير مترابطة.\n• صور فوتوغرافية وأوراق مسح تفتقر للمعلومات الحاسوبية الدلالية.\n• استرجاع وتصنيف يدوي يستنزف أكثر من 70% من وقت الباحث الأثري.",
+                "s2_right_head": "التوثيق الذكي التنبؤي (2026)",
+                "s2_right_body": "• تعرف آلي على الأنماط واستخراج السمات الزخرفية للقطع.\n• نماذج متعددة الوسائط (Multimodal AI) للفهرسة الفورية من الصور.\n• تطبيق معايير FAIR الدولية للربط بين مكتشفات متاحف ومواقع الشارقة.",
+                "s3_steps": [
+                    ("التقاط الصورة/النقش", "تصوير الكسرة أو المسكوكة عبر كاميرا عالية الدقة"),
+                    ("معالجة الرؤية (Vision AI)", "عزل التآكل واستخراج معالم الخطوط والكتابات"),
+                    ("المطابقة بنموذج Ithaca", "استكمال الكلمات المتآكلة وتحديد عصر وتاريخ القطعة"),
+                    ("التصدير القياسي", "إنتاج بطاقة تعريفية آلية وفق معيار Dublin Core")
+                ],
+                "s4_kpis": [
+                    ("71%", "دقة نموذج Ithaca في ترميم واستكمال النقوش التاريخية التالفة"),
+                    ("84%", "دقة تحديد الموطن الجغرافي الأصلي للنصوص والمسكوكات"),
+                    ("80%", "تخفيض في الوقت المستهلك لإعداد بطاقات التوثيق المتحفية"),
+                    ("0.1mm", "دقة مطابقة قوالب ضرب المسكوكات الإسلامية المكتشفة بالشارقة")
+                ],
+                "notes": "التركيز على مسكوكات موقع المدام ودراهم مليحة لإثبات الجدوى الميدانية لأدوات الذكاء الاصطناعي أمام الإدارة."
+            },
+            {
+                "id": "2",
+                "title": "توثيق المواقع والتسجيل الميداني 3D",
+                "filename": "العرض_2_توثيق_المواقع_والتسجيل_الميداني.pptx",
+                "accent": COLOR_SAND_GOLD,
+                "badge": "المحور الثاني: التوثيق والنمذجة الميدانية",
+                "s2_title": "طفرة النمذجة ثلاثية الأبعاد: من SfM إلى 3DGS",
+                "s2_left_head": "التصوير المساحي الكلاسيكي (SfM)",
+                "s2_left_body": "• يتطلب مئات الصور المتداخلة وزمن معالجة طويل جداً.\n• يعاني أمام التباينات الحادة لضوء الشمس في صحراء الشارقة.\n• حاجة ماسة لمحطات عمل حاسوبية فائقة التعقيد بالموقع.",
+                "s2_right_head": "رذاذ غاوس (3D Gaussian Splatting)",
+                "s2_right_body": "• طفرة النمذجة: تمثيل المشهد كاملاً بسرعة معالجة فورية.\n• تصفح تفاعلي سلس للمواقع والمربعات بمعدل 60 إطاراً في الثانية.\n• العمل مباشرة من الهاتف والدرون دون الحاجة لأجهزة عملاقة.",
+                "s3_steps": [
+                    ("المسح بالهاتف (LiDAR)", "استخدام Polycam لمسح المر��ع الأثري أو اللقية"),
+                    ("التسجيل الصوتي الحقلي", "تحويل إملاء الباحث الأثري الميداني إلى سجل حفر رقمي"),
+                    ("مقاطع الفخار الآلية", "استخراج Rim Profiles تلقائياً دون رسم يدوي مجهد"),
+                    ("المزامنة مع QGIS", "ربط السحابة النقطية والتوأم الرقمي بقواعد بيانات الهيئة")
+                ],
+                "s4_kpis": [
+                    ("60 FPS", "سرعة التصفح السلس للتوائم الرقمية بمواقع التنقيب"),
+                    ("75%", "توفير في زمن استخراج ورسم مقاطع حواف الأواني الفخارية"),
+                    ("1mm", "دقة قياس الأبعاد الواقعية عبر مستشعرات الليدار المحمولة"),
+                    ("100%", "حفظ رقمي دائم للسياق الطبقي للموقع قبل إزالة الطبقات")
+                ],
+                "notes": "التأكيد على أن الحفرية الأثرية بطبيعتها عملية تدميرية متحكم بها؛ ما يُحفر لا يمكن إعادته، لذا فإن التوأم الرقمي يحفظ الموقع ��لأبد."
+            },
+            {
+                "id": "3",
+                "title": "الكشف والتنبؤ بالآثار المدفونة والاستشعار عن بعد",
+                "filename": "العرض_3_الكشف_والتنبؤ_والاستشعار_عن_بعد.pptx",
+                "accent": COLOR_CYAN,
+                "badge": "المحور الثالث: الاستشعار عن بعد والذكاء المكاني",
+                "s2_title": "اختراق الرمال الصحراوية عبر رادار الفضاء (SAR)",
+                "s2_left_head": "التصوير الضوئي الفضائي المحدود",
+                "s2_left_body": "• يلتقط فقط المعالم السطحية الظاهرة للعين البشرية المجردة.\n• تغطية الرمال الصحراوية الزاحفة تحجب بالكامل الآثار المدفونة.\n• صعوبة تتبع قنوات المياه القديمة والأسوار المطمورة تحت السطح.",
+                "s2_right_head": "الرادار الفضائي والليدار (SAR & LiDAR)",
+                "s2_right_body": "• موجات الرادار الميكروية (L-band) تخترق الرمال الجافة لعمق 1-3 أمتار.\n• الارتداد التفاضلي يكشف كثافة الأساسات الحجرية المطمورة.\n• الليدار الجوي يعزل الكثبان الرملية والنباتات لإنتاج نماذج DTM عارية.",
+                "s3_steps": [
+                    ("استدعاء صور Sentinel-1/2", "تحميل النطاقات الطيفية ورادار الفتحة الاصطناعية للمنطقة"),
+                    ("حساب مؤشر ANDI الأثري", "مقارنة النطاق الأحمر بنطاق الأشعة تحت الحمراء القريبة"),
+                    ("التصنيف بنموذج YOLO", "اكتشاف الأنماط الدائرية للمدافن والمستطيلة للأسوار"),
+                    ("توليد الإحداثيات الجغرافية", "تصدير خريطة اشتباه أثري عالية الاحتمالية لفرق المسح")
+                ],
+                "s4_kpis": [
+                    ("1 - 3m", "عمق اختراق موجات رادار SAR للرمال الصحراوية الجافة بالشارقة"),
+                    ("1000s", "كيلومترات مربعة تُفحص وتُحلل آلياً عبر الذكاء الاصطناعي في دقائق"),
+                    ("92%", "دقة النماذج التنبؤية في تمييز مدافن العصر البرونز�� وقنوات الأفلاج"),
+                    ("Zero", "حفريات عشوائية؛ توجيه فرق المسح مباشرة لنقاط مؤكدة بنسب احتمالية")
+                ],
+                "notes": "استعراض كود Colab التفاعلي وشرح كيف تبرز الأساسات الأثرية في خريطة التباين الطيفي بالألوان الفسفورية."
+            },
+            {
+                "id": "4",
+                "title": "مراقبة حالة المواقع والقطع الأثرية ورصد التدهور",
+                "filename": "العرض_4_مراقبة_حالة_المواقع_ورصد_التدهور.pptx",
+                "accent": COLOR_EMERALD,
+                "badge": "المحور الرابع: الصيانة التنبؤية وإدارة المخاطر",
+                "s2_title": "المراقبة رباعية الأبعاد (4D Time-Lapse) وحماية التراث",
+                "s2_left_head": "الترميم العلاجي الكلاسيكي (رد الفعل)",
+                "s2_left_body": "• التدخل فقط بعد حدوث التصدع الكبير أو انهيار جزء من الجدار.\n• تكاليف مالية باهظة وصعوبة بالغة في استعادة الحالة الأصلية.\n• غ��اب القياس الدقيق لمعدلات التآكل البطيئة الناتجة عن الرياح والأمطار.",
+                "s2_right_head": "الصيانة التنبؤية الذكية (الاستباق)",
+                "s2_right_body": "• مقارنة السحب النقطية (خوارزمية M3C2) لرصد الإزاحات المليمترية مبكراً.\n• التعرف الآلي على الشروخ ومعدل اتساعها عبر الرؤية الحاسوبية.\n• الكشف المبكر عن مرض البرونز والصدأ بالقطع المعدنية في المستودعات.",
+                "s3_steps": [
+                    ("المسح الدوري المقارن", "إجراء مسح ليزري أو تصويري سنوي لنفس الموقع أو المبنى"),
+                    ("المطابقة السحابية (M3C2)", "مقارنة هندسية فائقة الدقة لعزل الفروق الناتجة عن التآكل"),
+                    ("التجزئة الدلالية للشروخ", "تصنيف عمق واتساع الشقوق وتحديد درجة خطورتها آلياً"),
+                    ("تقرير الاستجابة المؤتمت", "إصدار تنبيه عاجل لفرق الصيانة وفق مصفوفة المخاطر المعتمدة")
+                ],
+                "s4_kpis": [
+                    ("0.5mm", "أصغر إزاحة هيكلية أو تآكل يمكن للنظام رصده وتنبيه الإدارة به"),
+                    ("65%", "تخفيض في كلفة أعمال الترميم بفضل التدخل الوقائي الاستباقي"),
+                    ("100%", "أتمتة تقارير الحالة الإنشائية وتصنيف المخاطر وفق معايير EAMENA"),
+                    ("24/7", "استجابة ذكية لحماية القلاع والمواقع الأثرية المفتوحة من عوامل الطقس")
+                ],
+                "notes": "الختام باستعراض خارطة طريق التحول الرقمي وتأسيس وحدة الرصد الذكي داخل هيئة الشارقة للآثار."
+            }
+        ]
+
+        def build_pptx_deck_bytes(mod):
+            prs = Presentation()
+            prs.slide_width = Inches(13.333)
+            prs.slide_height = Inches(7.5)
+            blank_layout = prs.slide_layouts[6]
+
+            accent = mod["accent"]
+            NAVY = RGBColor(15, 23, 42)
+            SLATE = RGBColor(30, 41, 59)
+            GOLD = RGBColor(212, 163, 115)
+            WHITE = RGBColor(255, 255, 255)
+            MUTED = RGBColor(148, 163, 184)
+            LIGHT = RGBColor(248, 250, 252)
+            TERRA = RGBColor(178, 58, 34)
+
+            def header(s, badge, title):
+                hb = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(1.15))
+                hb.fill.solid()
+                hb.fill.fore_color.rgb = NAVY
+                hb.line.fill.background()
+                ln = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, Inches(1.15), Inches(13.333), Inches(0.06))
+                ln.fill.solid()
+                ln.fill.fore_color.rgb = accent
+                ln.line.fill.background()
+                tf = hb.text_frame
+                tf.word_wrap = True
+                tf.margin_right = Inches(0.8)
+                tf.margin_top = Inches(0.15)
+                p0 = tf.paragraphs[0]
+                p0.text = f"حكومة الشارقة — هيئة الشارقة للآثار | {badge}"
+                p0.font.size = Pt(11)
+                p0.font.bold = True
+                p0.font.color.rgb = GOLD
+                p0.alignment = PP_ALIGN.RIGHT
+                p1 = tf.add_paragraph()
+                p1.text = title
+                p1.font.size = Pt(20)
+                p1.font.bold = True
+                p1.font.color.rgb = WHITE
+                p1.alignment = PP_ALIGN.RIGHT
+
+            # Slide 1: Hero
+            s1 = prs.slides.add_slide(blank_layout)
+            b1 = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(7.5))
+            b1.fill.solid()
+            b1.fill.fore_color.rgb = NAVY
+            b1.line.fill.background()
+            bar = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(13.1), 0, Inches(0.233), Inches(7.5))
+            bar.fill.solid()
+            bar.fill.fore_color.rgb = accent
+            bar.line.fill.background()
+            card = s1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.2), Inches(1.3), Inches(10.9), Inches(4.9))
+            card.fill.solid()
+            card.fill.fore_color.rgb = SLATE
+            card.line.color.rgb = GOLD
+            card.line.width = Pt(1.5)
+            ctf = card.text_frame
+            ctf.word_wrap = True
+            ctf.margin_right = Inches(0.8)
+            ctf.margin_top = Inches(0.6)
+            ctf.margin_left = Inches(0.8)
+            cp0 = ctf.paragraphs[0]
+            cp0.text = "حكومة الشارقة — هيئة الشارقة للآثار | المذكرة الرسمية SAA-CCS/1147/2026"
+            cp0.font.size = Pt(14)
+            cp0.font.bold = True
+            cp0.font.color.rgb = GOLD
+            cp0.alignment = PP_ALIGN.RIGHT
+            cp1 = ctf.add_paragraph()
+            cp1.text = mod["title"]
+            cp1.font.size = Pt(30)
+            cp1.font.bold = True
+            cp1.font.color.rgb = WHITE
+            cp1.alignment = PP_ALIGN.RIGHT
+            cp2 = ctf.add_paragraph()
+            cp2.text = f"\nورشة عمل: الذكاء الاصطناعي في توثيق المواقع والقطع الأثرية — {mod['badge']}"
+            cp2.font.size = Pt(16)
+            cp2.font.color.rgb = MUTED
+            cp2.alignment = PP_ALIGN.RIGHT
+
+            # Slide 2: Comparison
+            s2 = prs.slides.add_slide(blank_layout)
+            b2 = s2.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(7.5))
+            b2.fill.solid()
+            b2.fill.fore_color.rgb = LIGHT
+            b2.line.fill.background()
+            header(s2, mod["badge"], mod["s2_title"])
+            br = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(1.6), Inches(5.7), Inches(5.2))
+            br.fill.solid()
+            br.fill.fore_color.rgb = WHITE
+            br.line.color.rgb = RGBColor(226, 232, 240)
+            br.line.width = Pt(1.5)
+            rtf = br.text_frame
+            rtf.word_wrap = True
+            rtf.margin_right = Inches(0.4)
+            rtf.margin_left = Inches(0.4)
+            rtf.margin_top = Inches(0.4)
+            rp0 = rtf.paragraphs[0]
+            rp0.text = f"❌ {mod['s2_left_head']}"
+            rp0.font.size = Pt(18)
+            rp0.font.bold = True
+            rp0.font.color.rgb = TERRA
+            rp0.alignment = PP_ALIGN.RIGHT
+            rp1 = rtf.add_paragraph()
+            rp1.text = f"\n{mod['s2_left_body']}"
+            rp1.font.size = Pt(14)
+            rp1.font.color.rgb = NAVY
+            rp1.alignment = PP_ALIGN.RIGHT
+
+            bl = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.6), Inches(5.7), Inches(5.2))
+            bl.fill.solid()
+            bl.fill.fore_color.rgb = WHITE
+            bl.line.color.rgb = accent
+            bl.line.width = Pt(2)
+            ltf = bl.text_frame
+            ltf.word_wrap = True
+            ltf.margin_right = Inches(0.4)
+            ltf.margin_left = Inches(0.4)
+            ltf.margin_top = Inches(0.4)
+            lp0 = ltf.paragraphs[0]
+            lp0.text = f"✨ {mod['s2_right_head']}"
+            lp0.font.size = Pt(18)
+            lp0.font.bold = True
+            lp0.font.color.rgb = accent
+            lp0.alignment = PP_ALIGN.RIGHT
+            lp1 = ltf.add_paragraph()
+            lp1.text = f"\n{mod['s2_right_body']}"
+            lp1.font.size = Pt(14)
+            lp1.font.color.rgb = NAVY
+            lp1.alignment = PP_ALIGN.RIGHT
+
+            # Slide 3: Flow
+            s3 = prs.slides.add_slide(blank_layout)
+            b3 = s3.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(7.5))
+            b3.fill.solid()
+            b3.fill.fore_color.rgb = LIGHT
+            b3.line.fill.background()
+            header(s3, mod["badge"], "خارطة الإجراءات والتدفق الحقلي والمكتبي (Field-to-Lab Pipeline)")
+            x_pos = [Inches(9.8), Inches(6.8), Inches(3.8), Inches(0.8)]
+            for idx, (st_t, st_d) in enumerate(mod["s3_steps"]):
+                bst = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x_pos[idx], Inches(1.7), Inches(2.7), Inches(4.8))
+                bst.fill.solid()
+                bst.fill.fore_color.rgb = WHITE
+                bst.line.color.rgb = RGBColor(203, 213, 225)
+                bst.line.width = Pt(1.5)
+                stf = bst.text_frame
+                stf.word_wrap = True
+                stf.margin_right = Inches(0.25)
+                stf.margin_left = Inches(0.25)
+                stf.margin_top = Inches(0.4)
+                sp0 = stf.paragraphs[0]
+                sp0.text = f"الخطوة {idx+1}"
+                sp0.font.size = Pt(14)
+                sp0.font.bold = True
+                sp0.font.color.rgb = accent
+                sp0.alignment = PP_ALIGN.CENTER
+                sp1 = stf.add_paragraph()
+                sp1.text = st_t
+                sp1.font.size = Pt(16)
+                sp1.font.bold = True
+                sp1.font.color.rgb = NAVY
+                sp1.alignment = PP_ALIGN.CENTER
+                sp2 = stf.add_paragraph()
+                sp2.text = f"\n{st_d}"
+                sp2.font.size = Pt(12)
+                sp2.font.color.rgb = RGBColor(71, 85, 105)
+                sp2.alignment = PP_ALIGN.RIGHT
+
+            # Slide 4: KPIs
+            s4 = prs.slides.add_slide(blank_layout)
+            b4 = s4.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(7.5))
+            b4.fill.solid()
+            b4.fill.fore_color.rgb = NAVY
+            b4.line.fill.background()
+            header(s4, mod["badge"], "الأثر التشغيلي والمؤشرات الرقمية الميدانية (Key Impact Metrics)")
+            kpi_pos = [(Inches(6.9), Inches(1.7)), (Inches(0.8), Inches(1.7)), (Inches(6.9), Inches(4.5)), (Inches(0.8), Inches(4.5))]
+            for idx, (val, desc) in enumerate(mod["s4_kpis"]):
+                gx, gy = kpi_pos[idx]
+                kc = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, gx, gy, Inches(5.6), Inches(2.4))
+                kc.fill.solid()
+                kc.fill.fore_color.rgb = SLATE
+                kc.line.color.rgb = accent
+                kc.line.width = Pt(1)
+                ktf = kc.text_frame
+                ktf.word_wrap = True
+                ktf.margin_right = Inches(0.4)
+                ktf.margin_top = Inches(0.3)
+                ktf.margin_left = Inches(0.4)
+                kp0 = ktf.paragraphs[0]
+                kp0.text = val
+                kp0.font.size = Pt(36)
+                kp0.font.bold = True
+                kp0.font.color.rgb = GOLD
+                kp0.alignment = PP_ALIGN.RIGHT
+                kp1 = ktf.add_paragraph()
+                kp1.text = desc
+                kp1.font.size = Pt(13)
+                kp1.font.color.rgb = WHITE
+                kp1.alignment = PP_ALIGN.RIGHT
+
+            for s in [s1, s2, s3, s4]:
+                ntf = s.notes_slide.notes_text_frame
+                ntf.text = f"إرشادات المتحدث الرسمية أمام الحضور:\n{mod['notes']}"
+
+            buf = io.BytesIO()
+            prs.save(buf)
+            buf.seek(0)
+            return buf.getvalue()
+
+        col_pptx_sel, col_pptx_btn = st.columns([2, 1], gap="medium")
+        with col_pptx_sel:
+            chosen_module_idx = st.selectbox(
+                "اختر المحور لتوليد عرض PowerPoint مخصص له:",
+                range(len(pptx_modules)),
+                format_func=lambda i: f"المحور {pptx_modules[i]['id']}: {pptx_modules[i]['title']}"
+            )
+        with col_pptx_btn:
+            selected_mod = pptx_modules[chosen_module_idx]
+            pptx_data = build_pptx_deck_bytes(selected_mod)
+            st.download_button(
+                label=f"📊 تنزيل عرض ({selected_mod['filename']})",
+                data=pptx_data,
+                file_name=selected_mod["filename"],
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
+    else:
+        st.info("مكتبة python-pptx متوفرة في requirements.txt وسيتم تفعيل توليد شرائح PPTX تلقائياً على Streamlit Cloud.")
 
     st.markdown("---")
     st.subheader("📑 مستعرض شرائح العرض التقديمي (PDF Viewer)")
