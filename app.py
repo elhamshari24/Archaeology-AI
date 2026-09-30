@@ -241,6 +241,128 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(212, 163, 115, 0.4);
     }
+
+    /* 14. Material Symbols & Streamlit Icons Restoration (Fixes ligature text rendering) */
+    [data-testid="stIconMaterial"],
+    [data-testid="stIconMaterial"] *,
+    .e1vmumty0,
+    span[data-testid="stIconMaterial"],
+    [class*="stIconMaterial"],
+    button [data-testid="stIconMaterial"],
+    [data-testid="stTooltipIcon"] *,
+    [data-testid="stElementToolbar"] * {
+        font-family: "Material Symbols Rounded", sans-serif !important;
+        direction: ltr !important;
+        text-align: center !important;
+        font-style: normal !important;
+        font-weight: normal !important;
+        font-size: 1.5rem !important;
+        line-height: 1 !important;
+        letter-spacing: normal !important;
+        text-transform: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        word-wrap: normal !important;
+        font-feature-settings: "liga" 1 !important;
+        -webkit-font-smoothing: antialiased !important;
+        text-rendering: optimizeLegibility !important;
+    }
+
+    /* 15. Sidebar Collapse & Expand Controls */
+    [data-testid="stSidebarCollapseButton"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 100 !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button {
+        background-color: rgba(30, 41, 59, 0.85) !important;
+        border: 1px solid rgba(212, 163, 115, 0.4) !important;
+        border-radius: 8px !important;
+        color: #d4a373 !important;
+        width: 34px !important;
+        height: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+        margin: 4px !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button:hover {
+        background-color: rgba(212, 163, 115, 0.25) !important;
+        border-color: #d4a373 !important;
+        color: #ffffff !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 0 10px rgba(212, 163, 115, 0.3) !important;
+    }
+
+    /* Expand button when sidebar is closed */
+    [data-testid="stExpandSidebarButton"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: rgba(30, 41, 59, 0.9) !important;
+        border: 1px solid rgba(212, 163, 115, 0.4) !important;
+        border-radius: 8px !important;
+        color: #d4a373 !important;
+        width: 36px !important;
+        height: 36px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+        margin: 6px !important;
+    }
+
+    [data-testid="stExpandSidebarButton"]:hover {
+        background-color: rgba(212, 163, 115, 0.25) !important;
+        border-color: #d4a373 !important;
+        color: #ffffff !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 0 10px rgba(212, 163, 115, 0.3) !important;
+    }
+
+    /* Directional Arrow Flip for RTL Sidebar */
+    /* When open on right: arrow points right (→) to collapse into wall */
+    /* When closed on right: arrow points left (←) to pull sidebar out */
+    [data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+    [data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"] {
+        transform: scaleX(-1) !important;
+        font-size: 1.35rem !important;
+    }
+
+    /* Sidebar top header bar */
+    [data-testid="stSidebarHeader"] {
+        padding: 8px 12px !important;
+        min-height: 48px !important;
+    }
+
+    /* 16. Password visibility toggle icon */
+    button[aria-label="Show password"],
+    button[aria-label="Hide password"],
+    [data-testid="stTextInputRootElement"] button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    [data-testid="stTextInputRootElement"] [data-testid="stIconMaterial"] {
+        font-size: 1.25rem !important;
+        color: #94a3b8 !important;
+    }
+
+    [data-testid="stTextInputRootElement"] button:hover [data-testid="stIconMaterial"] {
+        color: #d4a373 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -416,12 +538,9 @@ with st.sidebar:
     # An unavailable or overloaded model falls back automatically (see generate_ai_content).
     model_options = [
         "gemini-2.5-flash",
-        "gemini-2.5-pro",
         "gemini-3.5-flash",
         "gemini-3.7-flash",
         "gemini-3.8-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
         "نموذج مخصص (Custom Model)...",
     ]
     chosen_model = st.selectbox("🤖 النموذج المعتمد:", model_options, index=0)
