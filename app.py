@@ -103,8 +103,31 @@ st.markdown("""
     [data-testid="stSidebarUserContent"] {
         direction: rtl !important;
         text-align: right !important;
+    }
+
+    /* Style sidebar only when expanded (open) */
+    section[data-testid="stSidebar"]:not([aria-expanded="false"]), 
+    section[data-testid="stSidebar"]:not([aria-expanded="false"]) [data-testid="stSidebarContent"] {
         background-color: #0b1120 !important;
         border-left: 1px solid rgba(212, 163, 115, 0.25) !important;
+    }
+
+    /* Completely eliminate collapsed sidebar strip to prevent leakage into the screen */
+    section[data-testid="stSidebar"][aria-expanded="false"],
+    section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarContent"],
+    section[data-testid="stSidebar"][aria-expanded="false"] * {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+        pointer-events: none !important;
     }
 
     /* 4. Labels and Inputs alignment */
