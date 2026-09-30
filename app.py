@@ -3,6 +3,7 @@ import io
 import json
 import base64
 import shutil
+import time
 import datetime
 import numpy as np
 import cv2
@@ -278,6 +279,72 @@ def get_genai_client(api_key):
         st.error(f"خطأ في تهيئة عميل الذكاء الاصطناعي: {e}")
         return None
 
+# -----------------------------------------------------------------------------
+# Resilient text generation (retry on 503 + automatic model fallback)
+# -----------------------------------------------------------------------------
+# Fallback order used when the selected model is unavailable or overloaded.
+FALLBACK_MODEL_CHAIN = [
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    "gemini-1.5-flash",
+]
+
+# Substrings marking a *transient* server-side failure worth retrying.
+TRANSIENT_ERROR_MARKERS = (
+    "503", "429", "500", "502", "504",
+    "UNAVAILABLE", "RESOURCE_EXHAUSTED", "INTERNAL",
+    "OVERLOADED", "HIGH DEMAND", "TRY AGAIN LATER",
+)
+
+
+def is_transient_error(exc):
+    """True when the failure is temporary (safe to retry or fail over from)."""
+    message = str(exc).upper()
+    return any(marker in message for marker in TRANSIENT_ERROR_MARKERS)
+
+
+def show_ai_error(exc):
+    """Render a clear, actionable Arabic error message."""
+    if is_transient_error(exc):
+        st.error(
+            "⚠️ خوادم الذكاء الاصطناعي مزدحمة حالياً (خطأ مؤقت 503). "
+            "أُعيدت المحاولة وتِم التبديل بين النماذج تلقائياً دون جدوى — "
+            "يرجى إعادة المحاولة بعد لحظات، أو اختيار نموذج آخر من القائمة الجانبية."
+        )
+    else:
+        st.error(f"حدث خطأ أثناء معالجة الطلب: {exc}")
+
+
+def generate_ai_content(client, contents, model=None, max_attempts=3):
+    """Call Gemini with retry-on-transient-error and automatic model fallback.
+
+    1. Retries the selected model up to ``max_attempts`` times (backoff).
+    2. Then falls back through FALLBACK_MODEL_CHAIN, one attempt per model.
+
+    Returns ``(response, model_used)``; re-raises the last error if all fail.
+    Non-transient errors (e.g. invalid API key) are raised immediately.
+    """
+    primary = (model or "").strip() or FALLBACK_MODEL_CHAIN[0]
+    chain = [primary] + [m for m in FALLBACK_MODEL_CHAIN if m != primary]
+
+    last_error = None
+    for position, model_name in enumerate(chain):
+        attempts = max_attempts if position == 0 else 1
+        for attempt in range(attempts):
+            try:
+                response = client.models.generate_content(model=model_name, contents=contents)
+                if position > 0:
+                    st.info(f"⚡ النموذج `{primary}` غير متاح حالياً — تم تحويل الطلب تلقائياً إلى `{model_name}`.")
+                return response, model_name
+            except Exception as exc:
+                last_error = exc
+                if not is_transient_error(exc):
+                    raise
+                if attempt < attempts - 1:
+                    time.sleep(1.5 * (attempt + 1))  # 1.5s, then 3s
+    raise last_error
+
+
 def ensure_presentation_static_copy(pdf_path):
     """Copy the presentation PDF into ./static so Streamlit serves it for full-screen viewing."""
     try:
@@ -345,20 +412,26 @@ with st.sidebar:
         key="gemini_key"
     )
 
-    # Added requested models: gemini-3.5-flash, gemini-3.7-flash, gemini-3.8-flash
+    # Model list: reliable IDs first, then the newest flash variants.
+    # An unavailable or overloaded model falls back automatically (see generate_ai_content).
     model_options = [
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
         "gemini-3.5-flash",
         "gemini-3.7-flash",
         "gemini-3.8-flash",
-        "نموذج مخصص (Custom Model)..."
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "نموذج مخصص (Custom Model)...",
     ]
     chosen_model = st.selectbox("🤖 النموذج المعتمد:", model_options, index=0)
     if chosen_model == "نموذج مخصص (Custom Model)...":
-        selected_model = st.text_input("أدخل اسم النموذج المطلوب:", value="gemini-3.5-flash")
+        selected_model = st.text_input("أدخل اسم النموذج المطلوب:", value="gemini-2.5-flash")
     else:
         selected_model = chosen_model
 
     st.caption(f"النموذج النشط حالياً: `{selected_model}`")
+    st.caption("🔄 عند ازدحام النموذج (503) يُعاد المحاولة تلقائياً ثم يُحوَّل الطلب إلى نموذج بديل.")
     
     st.markdown("---")
     st.markdown("""
@@ -466,13 +539,14 @@ with tab_coin:
                 if client:
                     with st.spinner("جاري استقراء النقوش وتحليل الخصائص المورفولوجية..."):
                         try:
-                            response = client.models.generate_content(
-                                model=selected_model,
-                                contents=[coin_image_to_process, custom_coin_prompt]
+                            response, _model_used = generate_ai_content(
+                                client,
+                                [coin_image_to_process, custom_coin_prompt],
+                                selected_model,
                             )
                             st.session_state["coin_report_output"] = response.text
                         except Exception as e:
-                            st.error(f"حدث خطأ أثناء معالجة الطلب: {e}")
+                            show_ai_error(e)
 
         if "coin_report_output" in st.session_state:
             st.markdown(f'<div class="report-box">{st.session_state["coin_report_output"]}</div>', unsafe_allow_html=True)
@@ -580,9 +654,10 @@ with tab_pottery:
 }}
 """
                         try:
-                            res_ai = client.models.generate_content(
-                                model=selected_model,
-                                contents=[pottery_img, prompt_pot]
+                            res_ai, _model_used = generate_ai_content(
+                                client,
+                                [pottery_img, prompt_pot],
+                                selected_model,
                             )
                             raw_text = res_ai.text.strip()
                             if raw_text.startswith("```json"):
@@ -591,7 +666,7 @@ with tab_pottery:
                                 raw_text = raw_text[:-3]
                             st.session_state["pottery_json_output"] = raw_text.strip()
                         except Exception as e:
-                            st.error(f"حدث خطأ أثناء معالجة الطلب: {e}")
+                            show_ai_error(e)
 
         if "pottery_json_output" in st.session_state:
             try:
@@ -797,13 +872,12 @@ with tab_satellite:
 3. التوصيات الإجرائية المباشرة (مثل استخدام الرادار الأرضي GPR أو طائرات الدرون الحرارية عند هذه الإحداثيات قبل بدء الحفر).
 """
                         try:
-                            res_sat = client.models.generate_content(
-                                model=selected_model,
-                                contents=prompt_sat_ai
+                            res_sat, _model_used = generate_ai_content(
+                                client, prompt_sat_ai, selected_model
                             )
                             st.session_state["sat_report_output"] = res_sat.text
                         except Exception as e:
-                            st.error(f"خطأ أثناء توليد التقرير: {e}")
+                            show_ai_error(e)
 
             if "sat_report_output" in st.session_state:
                 st.markdown(f'<div class="report-box">{st.session_state["sat_report_output"]}</div>', unsafe_allow_html=True)
@@ -901,13 +975,14 @@ with tab_structural:
 """
                         try:
                             overlay_pil = Image.fromarray(crack_overlay_img)
-                            res_wall = client.models.generate_content(
-                                model=selected_model,
-                                contents=[overlay_pil, prompt_wall]
+                            res_wall, _model_used = generate_ai_content(
+                                client,
+                                [overlay_pil, prompt_wall],
+                                selected_model,
                             )
                             st.session_state["wall_report_output"] = res_wall.text
                         except Exception as e:
-                            st.error(f"خطأ أثناء توليد التقرير: {e}")
+                            show_ai_error(e)
 
         if "wall_report_output" in st.session_state:
             st.markdown(f'<div class="report-box">{st.session_state["wall_report_output"]}</div>', unsafe_allow_html=True)
@@ -1098,13 +1173,12 @@ with tab_predicting:
                         if input_mode.startswith("فحص بصري") and ithaca_image is not None:
                             content_payload = [ithaca_image, ithaca_prompt]
 
-                        ithaca_res = client.models.generate_content(
-                            model=selected_model,
-                            contents=content_payload
+                        ithaca_res, _model_used = generate_ai_content(
+                            client, content_payload, selected_model
                         )
                         st.session_state["ithaca_report_output"] = ithaca_res.text
                     except Exception as e:
-                        st.error(f"خطأ أثناء تشغيل النموذج: {e}")
+                        show_ai_error(e)
 
         if "ithaca_report_output" in st.session_state:
             st.markdown(f'<div class="report-box">{st.session_state["ithaca_report_output"]}</div>', unsafe_allow_html=True)
